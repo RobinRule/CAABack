@@ -1,0 +1,11 @@
+applications:
+- path: .
+  memory: 128M
+  instances: 1
+  domain: mybluemix.net
+  name: PortfolioMgmt
+  host: PortfolioMgmt
+  disk_quota: 1024M
+  services:
+  - rediscloud
+  buildpack: python_buildpack

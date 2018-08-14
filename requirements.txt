@@ -1,0 +1,7 @@
+Flask==0.10.1
+redis>=2.10
+nose
+rednose
+coverage
+codeclimate-test-reporter
+behave
