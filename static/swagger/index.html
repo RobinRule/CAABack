@@ -32,8 +32,6 @@
       var url = window.location.search.match(/url=([^&]+)/);
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
-      } else {
-        url = "static/swagger/specification/portfolioMgmt.json"; //this is useless but just in case the JS file is not found
       }
 
       hljs.configure({

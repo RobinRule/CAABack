@@ -1,10 +1,10 @@
 # To change the Swagger documentation
 
 1. Go to the [Swagger online editor](http://editor.swagger.io/#/).
-2. Paste the content of the file [`static/swagger/specification/portfolioMgmt.yaml`](https://github.com/qdm12/Devops_RESTful/edit/master/static/swagger/specification/portfolioMgmt.yaml) to the left panel.
+2. Paste the content of the file [`static/swagger/specification/CAAMgmt.yaml`](https://github.com/CAA-dev/CAABack/blob/master/static/swagger/specification/CAAMgmt.yaml) to the left panel.
 3. Modify the code in the left panel, which is rendered on the right panel.
 4. When finished, click on **File** and then **Download YAML** and **Download JSON**.
-5. Rename the JSON and YAML files downloaded to *portfolioMgmt.json* and *portfolioMgmt.yaml* respectively.
+5. Rename the JSON and YAML files downloaded to *CAAMgmt.json* and *CAAMgmt.yaml* respectively.
 6. Overwrite the JSON and YAML files present in `static/swagger/specification` with the two files previously renamed.
 
 # Testing it
