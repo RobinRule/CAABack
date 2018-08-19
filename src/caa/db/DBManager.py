@@ -13,7 +13,7 @@ sys.path.append(
         ".."
         )
     )
-from app import CFG
+from global_var import CFG
 
 # manages db connection
 # singleton pattern, only one instance exist
