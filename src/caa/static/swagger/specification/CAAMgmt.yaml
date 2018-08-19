@@ -3,23 +3,22 @@ info:
   title: CAA Mgmt Project
   description: API for CAA management
   version: "1.0"
-host: portfoliomgmt.mybluemix.net
+host: localhost:5000
 schemes:
   - https
-  - http
 basePath: /api/v1
 produces:
   - application/json
 paths:
 
-  /case/:
+  /cases:
     post:
       summary: Create a new case
       description: Create a new case
       parameters: 
         - name: case
           in: body
-          description: an integer id of case
+          description: a case needed to be added to database
           required: true
           schema: { $ref: '#/definitions/case'}
       tags:
@@ -34,7 +33,7 @@ paths:
     put:
       summary: Update an existing case
       description: Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value
-      will be Update
+        will be Update
       parameters: 
         - name: case
           in: body
@@ -44,53 +43,66 @@ paths:
       tags:
         - Cases
       responses:
-  /case/{case_id}:
+        200:
+          description: Case is updated sucessfully
+        404:
+          description: Case not found
+          schema: {$ref: '#/definitions/error_casedoesnotexist'}
+  /cases/{case_id}:
     delete:
       summary: delete a case by id
       description: delete a case refers by the given case id
+      tags:
+        - Cases
       parameters:
         - name: case_id
           in: path
           description: an integer id of case
           required: true
-          schema: { $ref: '#/definitions/case_id'}
+          type: integer
       responses:
+        200:
+          description: Case is deleted succesfully
         404:
           description: No case with given case id exist (more details in error message)
           schema: {$ref: '#/definitions/error_casedoesnotexist'}
     get:
-      summary: Get case by id
+      summary: Get a case by id
       description:
         This get request returns a case by the id specified
-      parameters: 
+      parameters:
         - name: case_id
           in: path
           description: an integer id of case
           required: true
-          schema: { $ref: '#/definitions/case_id'}
+          type: integer
       tags:
         - Cases
       responses:
         200:
-          description: A case
+          description: Case founded
           schema:
             type: object
             items:
               $ref: '#/definitions/case'
-  /case/usr_id/{usr_id}/:
+        404:
+          description: Case not found
+          schema: {$ref: '#/definitions/error_casedoesnotexist'}
+  /cases/usr_id/{usr_id}/:
     get:
       description: Search for usr's cases by id. By default the result is sorted by create time. User of this api can
-      pass in a list of search specs to further refine the result. Relationship between different search spec is AND.
-      In each search spec, you can specify the a specified val for the attr that you are searching for or you can specify
-      you want the sorting order of returned result. When multiple sorting order is specified, the one appears first takes
-      a higher priority.
-      An usr is only allowed to search his own cases and his team members' cases.
-      tags: Cases
+        pass in a list of search specs to further refine the result. Relationship between different search spec is AND.
+        In each search spec, you can specify the a specified val for the attr that you are searching for or you can specify
+        you want the sorting order of returned result. When multiple sorting order is specified, the one appears first takes
+        a higher priority.
+        An usr is only allowed to search his own cases and his team members' cases.
+      tags:
+        - Cases
       parameters:
         - name: usr_id
           in: path
           required: true
-          schema: { $ref: '#/definitions/usr_id'}
+          type: integer
         - name: search_specs
           in: body
           required: false
@@ -100,48 +112,15 @@ paths:
               $ref: '#/definitions/search_spec'
       responses:
         200:
-          description: An array of assets
+          description: An array of cases
           schema:
             type: array
             items:
-              $ref: '#/definitions/asset_description'
+              $ref: '#/definitions/case'
+        404:
+          description: Usr with given usr id does not existed
+          schema: {$ref: '#/definitions/error_casedoesnotexist'}
 
-  /usr/{usr_id}:
-    get:
-      summary: Get a usr by usr_id
-
-  /case_status/:
-    get:
-      summary: Get all case status
-      description:
-        The case_status endpoint returns all defined case status stored on the system.
-        The response includes the case_status string cal, case_status id, and possible case status that this case status points to.
-      tags:
-        - CaseStatus
-      responses:
-        200:
-          description: An array of case_status
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/case_status'
-    post:
-      summary: Create a new case_status
-      parameters:
-        - name: body
-          in: body
-          description: New case_status
-          required: true
-          schema: { $ref: '#/definitions/case_status'}
-  /case_status/{case_status_id}:
-    delete:
-      summary: delete a case_status by id
-      tags: CaseStatus
-      responses:
-    put:
-      summary: update a case_status by id
-      tags: CaseStatus
-      responses:
 
 definitions:
 
@@ -159,15 +138,13 @@ definitions:
         type: integer
       custId:
         type: integer
-      statusId:
-        type: integer
+      status:
+        type: string
       createTime:
         type: string
       closeTime:
         type: string
 
-  case_status_id:
-    type: integer
 
   case_status:
     type: object
@@ -175,7 +152,7 @@ definitions:
       nexts:
         type: array
         items: 
-          $ref: '#/definitions/case_status_id'
+          type: string
       str_val:
         type: string
       id:
@@ -202,7 +179,7 @@ definitions:
       attr_val:
         type: string
       descending:
-        type: bool
+        type: boolean
 
   error_data:
     type: object
@@ -243,5 +220,4 @@ definitions:
         type: string
         description: Case with id x already existed
         default: "Case with id x already existed."
-        
         
