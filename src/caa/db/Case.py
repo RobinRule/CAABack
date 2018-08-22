@@ -4,6 +4,7 @@ from datetime import datetime
 from dateutil.parser import parse as timeParse
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 class Case(object):
@@ -30,24 +31,36 @@ class Case(object):
     @classmethod
     def addCase(cls, case):
         # get maxId from db after setup
-        if  Case.MAX_ID is None:
-            cursor = DBManager.cursor()
-            cursor.execute("SELECT MAX(caseId) FROM CASES;")
-            result = cursor.fetchone()
-            Case.MAX_ID = result[0] if not (result[0] is None) else -1
+        # if  Case.MAX_ID is None:
+        #     cursor = DBManager.cursor()
+        #     cursor.execute("SELECT MAX(caseId) FROM CASES;")
+        #     result = cursor.fetchone()
+        #     Case.MAX_ID = result[0] if not (result[0] is None) else -1
 
-        newCaseId = Case.MAX_ID + 1
+        # newCaseId = Case.MAX_ID + 1
+        newCaseId = 1
         logger.info("Allocated id is :{}".format(newCaseId))
-        con = DBManager.connection()
-        query = "INSERT INTO CASES\
-        ( caseId, usrId, custId, status, creatTime)\
-        VALUES ({caseId}, {usrId}, {custId}, '{status}', '{creatTime}');".\
-        format(
-            caseId = newCaseId, usrId = case.usrId, custId = case.custId,
-            status = case.status, creatTime = case.creatTime)
-        logger.info("Executing query:{}".format(query))
-        con.execute(query)
-        Case.MAX_ID += 1
+
+        DBManager.table("Cases").put_item(
+            Item={
+                'caseId': newCaseId,
+                'usrId': case.usrId,
+                'custId': case.custId,
+                'status' : case.status,
+                'creatTime' : case.creatTime.isoformat(),
+            }
+
+        )
+        # con = DBManager.connection()
+        # query = "INSERT INTO CASES\
+        # ( caseId, usrId, custId, status, creatTime)\
+        # VALUES ({caseId}, {usrId}, {custId}, '{status}', '{creatTime}');".\
+        # format(
+        #     caseId = newCaseId, usrId = case.usrId, custId = case.custId,
+        #     status = case.status, creatTime = case.creatTime)
+        # logger.info("Executing query:{}".format(query))
+        # con.execute(query)
+        # Case.MAX_ID += 1
         return newCaseId
 
 
@@ -60,21 +73,42 @@ class Case(object):
 
     @classmethod
     def updateCaseStatus(cls, caseId, caseStatus):
-        query = "UPDATE CASES\
-            SET status='{}' WHERE caseId={}".format(str(caseStatus), int(caseId))
-        DBManager.connection().execute(query)
+
+        response = caseTable.update_item(
+            Key={
+                'caseId': caseId,
+            },
+            UpdateExpression = "set caseStatus = :p ",
+            ExpressionAttributeValues = {
+                ':p': caseStatus,
+            }
+        )
+        # query = "UPDATE CASES\
+        #     SET status='{}' WHERE caseId={}".format(str(caseStatus), int(caseId))
+        # DBManager.connection().execute(query)
 
     # get a case by caseId
     @classmethod
     def getCase(cls, caseId):
-        cursor = DBManager.cursor()
-        query = "SELECT * FROM CASES where caseID={};".format(caseId)
-        cursor.execute(query)
-        caseRecord = cursor.fetchone()
-        logger.info("Returning caseRecord:{}".format(caseRecord))
-        if caseRecord is None:
-            return None
-        return Case( dbRecord = caseRecord )
+        response = DBManager.table("Cases").get_item(
+            Key={
+                'caseId': int(caseId),
+            }
+        )
+
+        item = response['Item']
+        print("GetCase succeeded:")
+        print(item['usrId'])
+        print item
+        return item
+        # cursor = DBManager.cursor()
+        # query = "SELECT * FROM CASES where caseID={};".format(caseId)
+        # cursor.execute(query)
+        # caseRecord = cursor.fetchone()
+        # logger.info("Returning caseRecord:{}".format(caseRecord))
+        # if caseRecord is None:
+        #     return None
+        # return Case( dbRecord = caseRecord )
 
     def __repr__(self):
         return "{{ caseId : {}, usrId : {}, custId : {}, status : {}, creatTime : {}, closeTime : {}}}".\
@@ -92,3 +126,4 @@ class Case(object):
             self.status == obj.status and\
             self.creatTime == obj.creatTime and\
             self.closeTime == obj.closeTime
+

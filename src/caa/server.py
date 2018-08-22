@@ -69,6 +69,17 @@ def get_case(case_id):
     """
     return reply( CaseBusiness.getCase(case_id), HTTP_200_OK)
 
+@APP.route(URL_VERSION+"/cases", methods=['PUT'])
+def add_case():
+    """
+    GET request at localhost:5000/api/v1/cases/<asset_id>
+    """
+    try:
+        payload = json.loads(request.data)
+    except:
+        return reply( {}, HTTP_400_BAD_REQUEST)
+    
+    return reply( {"caseId": CaseBusiness.addCase(payload)}, HTTP_200_OK)
 
 ######################################################################
 # UTILITY FUNCTIONS
