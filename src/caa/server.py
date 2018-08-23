@@ -98,4 +98,4 @@ def is_valid(data, keys=[]):
     return True
 
 if __name__ == '__main__':
-    APP.run()
+    APP.run(host="0.0.0.0", port=5000)
