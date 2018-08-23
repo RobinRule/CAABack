@@ -93,7 +93,7 @@ def reply(message, rc):
 def is_valid(data, keys=[]):
     for k in keys:
         if k not in data:
-            #app.logger.error('Missing key in data: {0}'.format(k))
+            APP.logger.error('Missing key in data: {0}'.format(k))
             return False
     return True
 
