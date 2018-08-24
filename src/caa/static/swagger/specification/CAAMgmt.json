@@ -33,23 +33,17 @@
           "Cases"
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Case id of the new case",
             "schema": {
-              "$ref": "#/definitions/case_id"
-            }
-          },
-          "400": {
-            "description": "Body is not well formed (more details in error message)",
-            "schema": {
-              "$ref": "#/definitions/error_data"
+              "$ref": "#/definitions/caseid_response"
             }
           }
         }
       },
       "put": {
         "summary": "Update an existing case",
-        "description": "Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value will be Update",
+        "description": "Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value will be updated",
         "parameters": [
           {
             "name": "case",
@@ -66,12 +60,9 @@
         ],
         "responses": {
           "200": {
-            "description": "Case is updated sucessfully"
-          },
-          "404": {
-            "description": "Case not found",
+            "description": "Case is updated sucessfully",
             "schema": {
-              "$ref": "#/definitions/error_casedoesnotexist"
+              "$ref": "#/definitions/cases_response"
             }
           }
         }
@@ -95,12 +86,9 @@
         ],
         "responses": {
           "200": {
-            "description": "Case is deleted succesfully"
-          },
-          "404": {
-            "description": "No case with given case id exist (more details in error message)",
+            "description": "Case is deleted succesfully",
             "schema": {
-              "$ref": "#/definitions/error_casedoesnotexist"
+              "$ref": "#/definitions/cases_response"
             }
           }
         }
@@ -124,16 +112,7 @@
           "200": {
             "description": "Case founded",
             "schema": {
-              "type": "object",
-              "items": {
-                "$ref": "#/definitions/case"
-              }
-            }
-          },
-          "404": {
-            "description": "Case not found",
-            "schema": {
-              "$ref": "#/definitions/error_casedoesnotexist"
+              "$ref": "#/definitions/cases_response"
             }
           }
         }
@@ -168,16 +147,47 @@
           "200": {
             "description": "An array of cases",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/case"
-              }
+              "$ref": "#/definitions/cases_response"
             }
-          },
-          "404": {
-            "description": "Usr with given usr id does not existed",
+          }
+        }
+      }
+    },
+    "/case_status/": {
+      "get": {
+        "summary": "returns all defined case status",
+        "tags": [
+          "CaseStatus"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
             "schema": {
-              "$ref": "#/definitions/error_casedoesnotexist"
+              "$ref": "#/definitions/casestatus_response"
+            }
+          }
+        }
+      }
+    },
+    "/usr/{usr_id}": {
+      "get": {
+        "summary": "get a usr's information by usrId",
+        "parameters": [
+          {
+            "name": "usr_id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/usr"
             }
           }
         }
@@ -191,28 +201,8 @@
     "usr_id": {
       "type": "integer"
     },
-    "case": {
-      "type": "object",
-      "properties": {
-        "caseId": {
-          "type": "integer"
-        },
-        "usrId": {
-          "type": "integer"
-        },
-        "custId": {
-          "type": "integer"
-        },
-        "status": {
-          "type": "string"
-        },
-        "createTime": {
-          "type": "string"
-        },
-        "closeTime": {
-          "type": "string"
-        }
-      }
+    "caseStatus_id": {
+      "type": "integer"
     },
     "case_status": {
       "type": "object",
@@ -227,7 +217,33 @@
           "type": "string"
         },
         "id": {
-          "type": "integer"
+          "$ref": "#/definitions/caseStatus_id"
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "properties": {
+        "caseId": {
+          "$ref": "#/definitions/case_id"
+        },
+        "usrId": {
+          "$ref": "#/definitions/usr_id"
+        },
+        "custName": {
+          "type": "string"
+        },
+        "custContact": {
+          "type": "string"
+        },
+        "statusId": {
+          "$ref": "#/definitions/caseStatus_id"
+        },
+        "createTime": {
+          "type": "string"
+        },
+        "closeTime": {
+          "type": "string"
         }
       }
     },
@@ -235,7 +251,7 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "integer"
+          "$ref": "#/definitions/usr_id"
         },
         "name_first": {
           "type": "string"
@@ -245,6 +261,55 @@
         },
         "contacts": {
           "type": "string"
+        }
+      }
+    },
+    "error_type": {
+      "type": "string",
+      "enum": [
+        "error_no_such_id",
+        "error_request_ill_formated"
+      ]
+    },
+    "caseid_response": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "$ref": "#/definitions/error_type"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/case_id"
+          }
+        }
+      }
+    },
+    "cases_response": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "$ref": "#/definitions/error_type"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/case"
+          }
+        }
+      }
+    },
+    "casestatus_response": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "$ref": "#/definitions/error_type"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/case_status"
+          }
         }
       }
     },
@@ -259,56 +324,6 @@
         },
         "descending": {
           "type": "boolean"
-        }
-      }
-    },
-    "error_data": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string",
-          "description": "Highlights that the data is not JSON or does not have the necessary required information.",
-          "default": "The data is not valid."
-        }
-      }
-    },
-    "error_userexists": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string",
-          "description": "The user already exists in the database",
-          "default": "The user already exists in the database."
-        }
-      }
-    },
-    "error_userdoesnotexist": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string",
-          "description": "The user does not exist in the database",
-          "default": "The user does not exist in the database."
-        }
-      }
-    },
-    "error_casedoesnotexist": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string",
-          "description": "The case does not exist in the database",
-          "default": "The case does not exist in the database."
-        }
-      }
-    },
-    "error_caseexists": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "string",
-          "description": "Case with id x already existed",
-          "default": "Case with id x already existed."
         }
       }
     }
