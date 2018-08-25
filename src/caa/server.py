@@ -62,12 +62,19 @@ def index_api():
 ######################################################################
 # RETRIEVE the a case by id
 ######################################################################
-@APP.route(URL_VERSION+"/cases/<case_id>", methods=['GET'])
+@APP.route(URL_VERSION+"/case/<case_id>", methods=['GET'])
 def get_case(case_id):
     """
     GET request at localhost:5000/api/v1/cases/<asset_id>
     """
     return reply( CaseBusiness.getCase(case_id), HTTP_200_OK)
+
+@APP.route(URL_VERSION+"/caseList/<user_id>", methods=['GET'])
+def get_caseList(user_id):
+    """
+    GET request at localhost:5000/api/v1/cases/<asset_id>
+    """
+    return reply( CaseBusiness.getCaseList(user_id, 10), HTTP_200_OK)
 
 @APP.route(URL_VERSION+"/cases", methods=['PUT'])
 def add_case():

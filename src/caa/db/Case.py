@@ -30,15 +30,16 @@ class Case(object):
     # add a new case to database, return a Case Id
     @classmethod
     def addCase(cls, case):
+
         # get maxId from db after setup
         # if  Case.MAX_ID is None:
         #     cursor = DBManager.cursor()
         #     cursor.execute("SELECT MAX(caseId) FROM CASES;")
         #     result = cursor.fetchone()
         #     Case.MAX_ID = result[0] if not (result[0] is None) else -1
+        Case.MAX_ID = 100
+        newCaseId = Case.MAX_ID + 1
 
-        # newCaseId = Case.MAX_ID + 1
-        newCaseId = 1
         logger.info("Allocated id is :{}".format(newCaseId))
 
         DBManager.table("Cases").put_item(
@@ -108,7 +109,19 @@ class Case(object):
         # logger.info("Returning caseRecord:{}".format(caseRecord))
         # if caseRecord is None:
         #     return None
-        # return Case( dbRecord = caseRecord )
+        # return Case( dbRecord = caseRecord )s
+
+    # get caseList by usrId, default return all case belongs to the usrId
+    @classmethod
+    def getCaseList(cls, usrId, limit):
+        response = DBManager.table("Cases").scan(
+            FilterExpression=Attr('usrId').eq(usrId)
+        )
+        print("GetCase succeeded:")
+        for i in response['Items']:
+            print(i['caseId'], ":", i['usrId'])
+
+        return response['Items']
 
     def __repr__(self):
         return "{{ caseId : {}, usrId : {}, custId : {}, status : {}, creatTime : {}, closeTime : {}}}".\

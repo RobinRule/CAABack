@@ -5,3 +5,4 @@ rednose
 coverage
 codeclimate-test-reporter
 behave
+mock
