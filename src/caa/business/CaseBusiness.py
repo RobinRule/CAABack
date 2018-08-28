@@ -15,11 +15,10 @@ class CaseBusiness(object):
 	def addCase(cls, jsonCase):
 		return Case.addCase(
 			Case([None, 
-				jsonCase["usrId"], 
-				jsonCase["custId"], 
-				jsonCase["status"], 
-				jsonCase["creatTime"], 
-				None])
+				jsonCase["userId"], 
+				jsonCase["statusId"], 
+				jsonCase["createTime"]
+				])
 			)
 
 	@classmethod

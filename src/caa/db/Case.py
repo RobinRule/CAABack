@@ -2,6 +2,7 @@
 from .DBManager import DBManager
 from datetime import datetime
 from dateutil.parser import parse as timeParse
+from boto3.dynamodb.conditions import Key, Attr
 import logging
 
 
@@ -39,10 +40,17 @@ class Case(object):
     @classmethod
     def addCase(cls, case):
         caseTable = DBManager.table("Cases")
-        
-        if  Case.MAX_ID is None:
-            Case.MAX_ID = caseTable.item_count
-        newCaseId = Case.MAX_ID + 1
+
+        response = caseTable.query(
+              Limit = 1,
+              ScanIndexForward = False,
+              KeyConditionExpression=Key('userId').eq(case.userId) & Key('caseId').gt(0)
+        )
+        if len(response['Items']):
+            largestCaseId = response['Items'][0]['caseId']
+            newCaseId = largestCaseId+ 1
+        else:
+            newCaseId = 1;
 
         logger.info("Allocated id is :{}".format(newCaseId))
         caseTable.put_item(
@@ -118,15 +126,16 @@ class Case(object):
         logger.debug("Returning case: {}".format(item['caseId']))
         return item
 
-    # # get caseList by userId, default return all case belongs to the usrId
-    # @classmethod
-    # def getCaseList(cls, usrId, limit):
-    #     response = DBManager.table("Cases").scan(
-    #         FilterExpression=Attr('usrId').eq(usrId)
-    #     )
-    #     print("GetCase succeeded:")
-    #     for i in response['Items']:
-    #         print(i['caseId'], ":", i['usrId'])
+
+    # get caseList by usrId, default return all case belongs to the usrId
+    @classmethod
+    def getCaseList(cls, usrId, case):
+        response = DBManager.table("Cases").query(
+              KeyConditionExpression=Key('userId').eq(usrId)
+        )
+        print("GetCase succeeded:")
+        for i in response['Items']:
+            print(i['caseId'], ":", i['usrId'])
 
     #     return response['Items']
 
