@@ -37,7 +37,11 @@ Access it at [https://qdm12.github.io/Devops_RESTful/index.html](https://qdm12.g
     - Open a terminal and enter `git clone git@github.com:CAA-dev/CAABack.git`
 2. Go to the project directory with a terminal with `cd CAABack`
 
-## IV - Run it on your machine with docker
+## IV - Run it on your machine directly
+1. run `pip3 install -r requirements.txt`
+2. run `python3 src/caa/server.py --config src/caa/config --mode service --log ./log --loglevel DEBUG`
+
+## V - Run it on your machine with docker(NEED TO BE EDITED)
 1. Make sure to follow the steps of **III - Obtain the source code and minimum requirements**. 
 2. Enter `vagrant up && vagrant ssh` (this will install the box, docker etc.)
 3. Enter `python /vagrant/server.py` (in the virtual machine you just logged in)
@@ -45,7 +49,7 @@ Access it at [https://qdm12.github.io/Devops_RESTful/index.html](https://qdm12.g
 5. You can also use the Chrome extension `Postman` for example to send RESTful requests such as `POST`. Install it [here](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
 6. To update Swagger, refer to the information in the [Github `static` directory](https://github.com/qdm12/Devops_RESTful/tree/master/static).
 
-## V - Run it on AWS(NEED TO BE EDITED)
+## VI - Run it on AWS(NEED TO BE EDITED)
 1. Make sure to follow the steps of **III - Obtain the source code and minimum requirements** although you don't need Vagrant.
 2. Login to Bluemix as follows:
   - `cf login https://api.ng.bluemix.net -u username -o organization -s "Portfolio Management"`
@@ -55,18 +59,18 @@ Access it at [https://qdm12.github.io/Devops_RESTful/index.html](https://qdm12.g
 4. You can then access it at [https://portfoliomgmt.mybluemix.net](https://portfoliomgmt.mybluemix.net)
 
 
-## VI - Run it on a Docker container
+## VII - Run it on a Docker container
 1. Cd into project directory
 2. Enter `docker build -t caa-back .`
 3. Enter `docker run -d -p 5000:5000 caa-back`
     If you want to see the logs, run it without `-d` flag
 
-## VII - Test driven development and PyUnit
+## VIII - Test driven development and PyUnit
 1. If not on Vagrant, install **pip** and enter `pip install nose rednose coverage`
 2. Run the server tests and find the test coverage with `nosetests --rednose -v --with-coverage --cover-package=server`
 3. Or you can use `coverage run server_test.py && coverage report -m --include=server.py`
 
-## VIII - Behavior driven development and behave
+## - Behavior driven development and behave
 1. Turn vagrant on with `vagrant up && vagrant ssh`
 2. Enter `cd /vagrant && behave` and check all the tests pass
 

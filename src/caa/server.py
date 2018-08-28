@@ -46,6 +46,8 @@ parser.add_argument('--endpoint', help='An endpoint to connect to (the host name
 parser.add_argument('--port', help='The port of DynamoDB Local endpoint to connect to.  Defaults to 8000', type=int)
 parser.add_argument('--serverPort', help='The port for this Flask web server to listen on.  Defaults to 5000 or whatever is in the config file. If the SERVER_PORT ' \
                     'environment variable is set, uses that instead.', type=int)
+parser.add_argument('--log', help='path to log file. ./{} by default'.format(global_var.APP_NAME), default='./{}.log'.format(global_var.APP_NAME), type=str)
+parser.add_argument('--loglevel', help='logging level, ERROR by default', default='ERROR', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
 
 global_var.ARGS = parser.parse_args()
 
@@ -126,9 +128,9 @@ def add_case():
 ######################################################################
 # DELETE a case
 ######################################################################
-@global_var.APP.route(global_var.URL_VERSION+"/cases/<case_id>", methods=['DELETE'])
-def delete_case(case_id):
-    return reply( {"status": CaseBusiness.delCase(payload)}, HTTP_200_OK)
+@global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/<case_id>", methods=['DELETE'])
+def delete_case(user_id, case_id):
+    return reply( {"status": CaseBusiness.delCase(user_id, case_id)}, HTTP_200_OK)
 
 ######################################################################
 # UPDATE a case
@@ -173,4 +175,15 @@ def is_valid(data, keys=[]):
     return True
 
 if __name__ == '__main__':
+    logLevel = global_var.ARGS.loglevel
+    logLevelMap = {
+        'DEBUG'    : logging.DEBUG,
+        'INFO'     : logging.INFO,
+        'WARNING'  : logging.WARNING,
+        'ERROR'    : logging.ERROR,
+        'CRITICAL' : logging.CRITICAL
+    }
+    logging.basicConfig(filename=global_var.ARGS.log, level=logLevelMap[logLevel],
+        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        datefmt='%m-%d %H:%M')
     global_var.APP.run(host="0.0.0.0", port=SVR_PORT)
