@@ -4,21 +4,32 @@ from db.Case import Case
 class CaseBusiness(object):
 	"""docstring for CaseBusiness"""
 	@classmethod
-	def getCase(cls, caseId):
-		return Case.getCase(caseId)
+	def getCase(cls, userId, caseId):
+		return Case.getCase(int(userId), int(caseId))
 
 	@classmethod
 	def delCase(cls, caseId):
-		pass
+		return Case.delCase(int(caseId))
 
 	@classmethod
-	def addCase(cls, case):
-		return Case.addCase(Case([None, case["usrId"], case["custId"], case["status"], case["creatTime"], None]))
+	def addCase(cls, jsonCase):
+		return Case.addCase(
+			Case([None, 
+				jsonCase["usrId"], 
+				jsonCase["custId"], 
+				jsonCase["status"], 
+				jsonCase["creatTime"], 
+				None])
+			)
 
 	@classmethod
 	def updateCase(cls, case):
-		pass
+		case = Case()
+		for key in case:
+			if case[key]:
+				setattr(case, key, case[key])
+		return Case.updateCase(case)
 
-	@classmethod
-	def getCaseList(cls, usrId):
-		return Case.getCaseList(usrId)
+	# @classmethod
+	# def getCaseList(cls, usrId):
+	# 	return Case.getCaseList(usrId)

@@ -1,0 +1,5 @@
+[dynamodb]
+region = us-east-2
+endpoint = http://dynamodb.us-east-2.amazonaws.com
+aws_access_key_id = AKIAJWXA236SXOSTE2BA
+aws_secret_access_key = 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

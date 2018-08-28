@@ -1,10 +1,12 @@
 #!/usr/bin/python2.7
-
 import sys
 import sqlite3
 import os
 import logging
-import boto3
+import decimal
+from datetime import datetime
+from .dynamodb.connectionManager import ConnectionManager
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -14,22 +16,38 @@ sys.path.append(
         ".."
         )
     )
-from global_var import CFG
+import global_var
+
+use_instance_metadata = ""
+if 'USE_EC2_INSTANCE_METADATA' in os.environ:
+    use_instance_metadata = os.environ['USE_EC2_INSTANCE_METADATA']
 
 # manages db connection
 # singleton pattern, only one instance exist
 class DBManager(object):
     """docstring for DBManager"""
     _CON = None
-    
+
+    @classmethod
+    def dataToStr(cls, val):
+        if type(val) is str:
+            return "'{}'",format(val)
+        elif type(val) in [int, float]:
+            return str(val)
+        elif type(val) is datetime:
+            return "'{}'".format(val.isoformat())
+
     # return a connection
     @classmethod
-    def connection(cls):
+    def connection(cls, mode = 'service'):
         if not cls._CON:
-            logger.info("Starting connection to database:{}".format(CFG["db"]))
-            dbCfg = CFG["db"]
-            cls._CON = boto3.resource(dbCfg["db"], region_name=dbCfg["region"], endpoint_url=dbCfg["endpoint"], aws_access_key_id="AKIAJWXA236SXOSTE2BA", aws_secret_access_key="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")
-            # cls._CON = boto3.client('dynamodb', region_name='us-east-2', endpoint_url="http://dynamodb.us-east-2.amazonaws.com", aws_access_key_id="AKIAJWXA236SXOSTE2BA", aws_secret_access_key="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")
+            cls._CON = ConnectionManager(
+                mode=global_var.ARGS.mode,
+                config=global_var.CFG,
+                endpoint=global_var.ARGS.endpoint,
+                port=global_var.ARGS.port,
+                use_instance_metadata=use_instance_metadata
+            )
         return cls._CON
 
     @classmethod
@@ -40,4 +58,16 @@ class DBManager(object):
     # return a table reference
     @classmethod
     def table(cls, table_name):
-        return cls.connection().Table(table_name)
+        print("Getting table 1")
+        return cls.connection().getTable(table_name)
+
+    @classmethod
+    def toJsonData(cls, item):
+        # Helper class to convert a DynamoDB item to JSON.
+        class DecimalEncoder(json.JSONEncoder):
+            def default(self, o):
+                if isinstance(o, decimal.Decimal):
+                    return str(o)
+                return super(DecimalEncoder, self).default(o)
+
+        return json.loads(json.dumps(item, cls=DecimalEncoder))

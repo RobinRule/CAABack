@@ -25,7 +25,7 @@ var spec = {
             "description": "a case needed to be added to database",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/case"
+              "$ref": "#/definitions/Case"
             }
           }
         ],
@@ -36,7 +36,7 @@ var spec = {
           "200": {
             "description": "Case id of the new case",
             "schema": {
-              "$ref": "#/definitions/caseid_response"
+              "$ref": "#/definitions/CaseIdResponse"
             }
           }
         }
@@ -51,7 +51,7 @@ var spec = {
             "description": "an integer id of case",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/case"
+              "$ref": "#/definitions/Case"
             }
           }
         ],
@@ -62,7 +62,7 @@ var spec = {
           "200": {
             "description": "Case is updated sucessfully",
             "schema": {
-              "$ref": "#/definitions/cases_response"
+              "$ref": "#/definitions/CasesResponse"
             }
           }
         }
@@ -88,7 +88,7 @@ var spec = {
           "200": {
             "description": "Case is deleted succesfully",
             "schema": {
-              "$ref": "#/definitions/cases_response"
+              "$ref": "#/definitions/CasesResponse"
             }
           }
         }
@@ -112,7 +112,7 @@ var spec = {
           "200": {
             "description": "Case founded",
             "schema": {
-              "$ref": "#/definitions/cases_response"
+              "$ref": "#/definitions/CasesResponse"
             }
           }
         }
@@ -138,7 +138,7 @@ var spec = {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/search_spec"
+                "$ref": "#/definitions/SearchSpec"
               }
             }
           }
@@ -147,7 +147,7 @@ var spec = {
           "200": {
             "description": "An array of cases",
             "schema": {
-              "$ref": "#/definitions/cases_response"
+              "$ref": "#/definitions/CasesResponse"
             }
           }
         }
@@ -163,7 +163,7 @@ var spec = {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/casestatus_response"
+              "$ref": "#/definitions/CasestatusResponse"
             }
           }
         }
@@ -187,7 +187,7 @@ var spec = {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/usr"
+              "$ref": "#/definitions/User"
             }
           }
         }
@@ -195,16 +195,16 @@ var spec = {
     }
   },
   "definitions": {
-    "case_id": {
+    "CaseId": {
       "type": "integer"
     },
-    "usr_id": {
+    "UserId": {
       "type": "integer"
     },
-    "caseStatus_id": {
+    "CaseStatusId": {
       "type": "integer"
     },
-    "case_status": {
+    "CaseStatus": {
       "type": "object",
       "properties": {
         "nexts": {
@@ -217,18 +217,18 @@ var spec = {
           "type": "string"
         },
         "id": {
-          "$ref": "#/definitions/caseStatus_id"
+          "$ref": "#/definitions/CaseStatusId"
         }
       }
     },
-    "case": {
+    "Case": {
       "type": "object",
       "properties": {
         "caseId": {
-          "$ref": "#/definitions/case_id"
+          "$ref": "#/definitions/CaseId"
         },
         "usrId": {
-          "$ref": "#/definitions/usr_id"
+          "$ref": "#/definitions/UserId"
         },
         "custName": {
           "type": "string"
@@ -237,7 +237,7 @@ var spec = {
           "type": "string"
         },
         "statusId": {
-          "$ref": "#/definitions/caseStatus_id"
+          "$ref": "#/definitions/CaseStatusId"
         },
         "createTime": {
           "type": "string"
@@ -247,16 +247,16 @@ var spec = {
         }
       }
     },
-    "usr": {
+    "User": {
       "type": "object",
       "properties": {
         "id": {
-          "$ref": "#/definitions/usr_id"
+          "$ref": "#/definitions/UserId"
         },
-        "name_first": {
+        "nameFirst": {
           "type": "string"
         },
-        "name_last": {
+        "nameLast": {
           "type": "string"
         },
         "contacts": {
@@ -264,56 +264,56 @@ var spec = {
         }
       }
     },
-    "error_type": {
+    "ErrorType": {
       "type": "string",
       "enum": [
-        "error_no_such_id",
-        "error_request_ill_formated"
+        "ErrorNoSuchId",
+        "ErrorRequestIllFormated"
       ]
     },
-    "caseid_response": {
+    "CaseIdResponse": {
       "type": "object",
       "properties": {
         "error": {
-          "$ref": "#/definitions/error_type"
+          "$ref": "#/definitions/ErrorType"
         },
         "content": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/case_id"
+            "$ref": "#/definitions/CaseId"
           }
         }
       }
     },
-    "cases_response": {
+    "CasesResponse": {
       "type": "object",
       "properties": {
         "error": {
-          "$ref": "#/definitions/error_type"
+          "$ref": "#/definitions/ErrorType"
         },
         "content": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/case"
+            "$ref": "#/definitions/Case"
           }
         }
       }
     },
-    "casestatus_response": {
+    "CasestatusResponse": {
       "type": "object",
       "properties": {
         "error": {
-          "$ref": "#/definitions/error_type"
+          "$ref": "#/definitions/ErrorType"
         },
         "content": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/case_status"
+            "$ref": "#/definitions/CaseStatus"
           }
         }
       }
     },
-    "search_spec": {
+    "SearchSpec": {
       "type": "object",
       "properties": {
         "attr_name": {

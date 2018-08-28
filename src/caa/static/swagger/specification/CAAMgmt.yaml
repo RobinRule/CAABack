@@ -20,13 +20,13 @@ paths:
           in: body
           description: a case needed to be added to database
           required: true
-          schema: { $ref: '#/definitions/case'}
+          schema: { $ref: '#/definitions/Case'}
       tags:
         - Cases
       responses:
         200:
           description: Case id of the new case
-          schema: { $ref: '#/definitions/caseid_response'}
+          schema: { $ref: '#/definitions/CaseIdResponse'}
           
     put:
       summary: Update an existing case
@@ -36,13 +36,13 @@ paths:
           in: body
           description: an integer id of case
           required: true
-          schema: { $ref: '#/definitions/case'}
+          schema: { $ref: '#/definitions/Case'}
       tags:
         - Cases
       responses:
         200:
           description: Case is updated sucessfully
-          schema: {$ref: '#/definitions/cases_response'}
+          schema: {$ref: '#/definitions/CasesResponse'}
 
   /cases/{case_id}:
     delete:
@@ -59,7 +59,7 @@ paths:
       responses:
         200:
           description: Case is deleted succesfully
-          schema: {$ref: '#/definitions/cases_response'}
+          schema: {$ref: '#/definitions/CasesResponse'}
     get:
       summary: Get a case by id
       description:
@@ -75,7 +75,7 @@ paths:
       responses:
         200:
           description: Case founded
-          schema: {$ref: '#/definitions/cases_response'}
+          schema: {$ref: '#/definitions/CasesResponse'}
 
   /cases/usr_id/{usr_id}/:
     get:
@@ -98,11 +98,11 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/search_spec'
+              $ref: '#/definitions/SearchSpec'
       responses:
         200:
           description: An array of cases
-          schema: {$ref: '#/definitions/cases_response'}
+          schema: {$ref: '#/definitions/CasesResponse'}
 
   /case_status/:
     get:
@@ -112,7 +112,7 @@ paths:
       responses:
         200:
           description: OK
-          schema: { $ref: '#/definitions/casestatus_response'}
+          schema: { $ref: '#/definitions/CasestatusResponse'}
 
   /usr/{usr_id}:
     get:
@@ -127,21 +127,21 @@ paths:
       responses:
         200:
           description: OK
-          schema: { $ref: '#/definitions/usr'}
+          schema: { $ref: '#/definitions/User'}
     
 
 definitions:
 
-  case_id:
+  CaseId:
     type: integer
   
-  usr_id:
+  UserId:
     type: integer
 
-  caseStatus_id:
+  CaseStatusId:
     type: integer
 
-  case_status:
+  CaseStatus:
     type: object
     properties:
       nexts:
@@ -151,75 +151,75 @@ definitions:
       str_val:
         type: string
       id:
-        $ref: '#/definitions/caseStatus_id'
+        $ref: '#/definitions/CaseStatusId'
 
-  case:
+  Case:
     type: object
     properties:
       caseId:
-        $ref: '#/definitions/case_id'
+        $ref: '#/definitions/CaseId'
       usrId:
-        $ref: '#/definitions/usr_id'
+        $ref: '#/definitions/UserId'
       custName:
         type: string
       custContact:
         type: string
       statusId:
-        $ref: '#/definitions/caseStatus_id'
+        $ref: '#/definitions/CaseStatusId'
       createTime:
         type: string
       closeTime:
         type: string
 
-  usr:
+  User:
     type: object
     properties:
       id:
-        $ref: '#/definitions/usr_id'
-      name_first:
+        $ref: '#/definitions/UserId'
+      nameFirst:
         type: string
-      name_last:
+      nameLast:
         type: string
       contacts:
         type: string
   
-  error_type:
+  ErrorType:
     type: string
     enum: 
-      - error_no_such_id
-      - error_request_ill_formated
+      - ErrorNoSuchId
+      - ErrorRequestIllFormated
   
-  caseid_response:
+  CaseIdResponse:
     type: object
     properties:
       error:
-        $ref: '#/definitions/error_type'
+        $ref: '#/definitions/ErrorType'
       content:
         type: array
         items:
-          $ref: '#/definitions/case_id'
+          $ref: '#/definitions/CaseId'
   
-  cases_response:
+  CasesResponse:
     type: object
     properties:
       error:
-        $ref: '#/definitions/error_type'
+        $ref: '#/definitions/ErrorType'
       content:
         type: array
         items:
-          $ref: '#/definitions/case'
+          $ref: '#/definitions/Case'
 
-  casestatus_response:
+  CasestatusResponse:
     type: object
     properties:
       error:
-        $ref: '#/definitions/error_type'
+        $ref: '#/definitions/ErrorType'
       content:
         type: array
         items:
-          $ref: '#/definitions/case_status'
+          $ref: '#/definitions/CaseStatus'
 
-  search_spec:
+  SearchSpec:
     type: object
     properties:
       attr_name:

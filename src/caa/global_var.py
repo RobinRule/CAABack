@@ -14,5 +14,6 @@ APP.debug=True
 
 SRC_PATH = os.path.dirname(os.path.abspath(__file__))
 
-with open(os.path.join(SRC_PATH, "config.json")) as f:
-    CFG = json.load(f)
+#declare in here, initialized in server.py
+CFG = {}
+ARGS = {}

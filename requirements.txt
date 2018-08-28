@@ -1,5 +1,6 @@
 Flask==0.10.1
 boto3
+configparser
 nose
 rednose
 coverage
