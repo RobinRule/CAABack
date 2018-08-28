@@ -2,6 +2,7 @@
 from .DBManager import DBManager
 from datetime import datetime
 from dateutil.parser import parse as timeParse
+from boto3.dynamodb.conditions import Key, Attr
 import logging
 
 
@@ -12,7 +13,7 @@ class Case(object):
     MAX_ID = None
     FIELD_LIST = {
         'caseId',
-        'usrId',
+        'userId',
         'nameFirst',
         'nameLast',
         'contact',
@@ -23,13 +24,13 @@ class Case(object):
     def __init__(self, dbRecord=None):
         if dbRecord:
             self.caseId = dbRecord[0]
-            self.usrId = dbRecord[1]
-            self.nameFirst = dbRecord[2]
-            self.nameLast = dbRecord[3]
-            self.contact = dbRecord[4]
-            self.statusId  = dbRecord[5]
-            self.creatTime = timeParse(dbRecord[6])
-            self.closeTime = timeParse(dbRecord[7]) if dbRecord[7] else dbRecord[7]
+            self.userId = dbRecord[1]
+            # self.nameFirst = dbRecord[2]
+            # self.nameLast = dbRecord[3]
+            # self.contact = dbRecord[4]
+            self.statusId  = dbRecord[2]
+            self.creatTime = timeParse(dbRecord[3])
+            # self.closeTime = timeParse(dbRecord[7]) if dbRecord[7] else dbRecord[7]
         else:
             self.caseId = None
             self.usrId = None
@@ -42,18 +43,24 @@ class Case(object):
     @classmethod
     def addCase(cls, case):
         caseTable = DBManager.table("Cases")
-        
-        if  Case.MAX_ID is None:
-            Case.MAX_ID = caseTable.item_count
-        newCaseId = Case.MAX_ID + 1
+
+        response = caseTable.query(
+              Limit = 1,
+              ScanIndexForward = False,
+              KeyConditionExpression=Key('userId').eq(case.userId) & Key('caseId').gt(0)
+        )
+        if len(response['Items']):
+            largestCaseId = response['Items'][0]['caseId']
+            newCaseId = largestCaseId+ 1
+        else:
+            newCaseId = 1;
 
         logger.info("Allocated id is :{}".format(newCaseId))
         caseTable.put_item(
             Item={
                 'caseId': newCaseId,
-                'usrId': case.usrId,
-                'custId': case.custId,
-                'status' : case.status,
+                'userId': case.userId,
+                'status' : case.statusId,
                 'creatTime' : case.creatTime.isoformat(),
             }
         )
@@ -120,9 +127,9 @@ class Case(object):
 
     # get caseList by usrId, default return all case belongs to the usrId
     @classmethod
-    def getCaseList(cls, usrId, limit):
-        response = DBManager.table("Cases").scan(
-            FilterExpression=Attr('usrId').eq(usrId)
+    def getCaseList(cls, usrId, case):
+        response = DBManager.table("Cases").query(
+              KeyConditionExpression=Key('userId').eq(usrId)
         )
         print("GetCase succeeded:")
         for i in response['Items']:

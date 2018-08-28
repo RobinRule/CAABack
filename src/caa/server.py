@@ -145,13 +145,21 @@ def update_case():
 ######################################################################
 # GET a case by id
 ######################################################################
-@global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/<case_id>", methods=['GET'])
+@global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/<case_id>/", methods=['GET'])
 def get_case(user_id, case_id):
     return reply( CaseBusiness.getCase(user_id, case_id), HTTP_200_OK)
 
-# @APP.route(global_var.URL_VERSION+"/cases/usr_id/<user_id>", methods=['GET'])
-# def get_cases_by_user(user_id):
-#     return reply( CaseBusiness.getCaseList(user_id, 10), HTTP_200_OK)
+######################################################################
+# GET cases by userId
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/", methods=['GET'])
+def get_cases_by_user(user_id):
+    try:
+        payload = json.loads(request.data)
+    except Exception as e:
+        logger.exception("Failed to load data")
+        return reply( {}, HTTP_400_BAD_REQUEST)
+    return reply( CaseBusiness.getCaseList(user_id, payload), HTTP_200_OK)
 
 
 
