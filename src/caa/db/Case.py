@@ -46,23 +46,23 @@ class Case(object):
               ScanIndexForward = False,
               KeyConditionExpression=Key('userId').eq(case.userId) & Key('caseId').gt(0)
         )
+        newCaseId = 1
         if len(response['Items']):
             largestCaseId = response['Items'][0]['caseId']
-            newCaseId = largestCaseId+ 1
-        else:
-            newCaseId = 1;
-
+            newCaseId = int(largestCaseId) + 1
+        # TODO: base on the input to decide what to add
         logger.info("Allocated id is :{}".format(newCaseId))
         caseTable.put_item(
             Item={
                 'caseId': newCaseId,
-                'userId': case.usrId,
-                'custId': case.custId,
-                'status' : case.status,
+                'userId': case.userId,
+                # 'custId': case.custId,
+                'statusId' : case.statusId,
                 'creatTime' : case.creatTime.isoformat(),
             }
         )
         logger.info("Added case: {} to database".format(newCaseId))
+        # return 1
         return newCaseId
 
 
@@ -129,15 +129,12 @@ class Case(object):
 
     # get caseList by usrId, default return all case belongs to the usrId
     @classmethod
-    def getCaseList(cls, usrId, case):
+    def getCaseList(cls, usrId, specs):
         response = DBManager.table("Cases").query(
               KeyConditionExpression=Key('userId').eq(usrId)
         )
-        print("GetCase succeeded:")
-        for i in response['Items']:
-            print(i['caseId'], ":", i['usrId'])
-
-    #     return response['Items']
+        logger.info("GetCaseList succeeded for user:{}".format(usrId))
+        return DBManager.toJsonData(response['Items'])
 
     def __repr__(self):
         return "{{ caseId : {}, usrId : {}, custId : {}, status : {}, creatTime : {}, closeTime : {}}}".\
