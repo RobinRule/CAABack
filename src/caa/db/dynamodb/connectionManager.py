@@ -22,21 +22,17 @@ class ConnectionManager:
         self.setupTable('Cases')
 
     def setupTable(self, tableName):
-        print("Getting table 3")
         try:
             self.tables[tableName] = self.db.Table(tableName)
-            print("I got table:{}".format(tableName))
         except Exception as e:
-            print("There was an issue trying to retrieve the {} table.".format(tableName))
+            logger.exception("There was an issue trying to retrieve the {} table.".format(tableName))
             self.createTable(tableName)
 
     def getTable(self, tableName):
-        print("Getting table 2")
         if self.tables.get(tableName) is None:
             self.setupTable(tableName)
         return self.tables[tableName]
 
     def createTable(self, tableName):
-        print("Getting table 4")
         if tableName == 'Cases':
             self.tables[tableName] = createCasesTable(self.db)

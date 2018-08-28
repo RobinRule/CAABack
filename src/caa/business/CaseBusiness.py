@@ -8,8 +8,8 @@ class CaseBusiness(object):
 		return Case.getCase(int(userId), int(caseId))
 
 	@classmethod
-	def delCase(cls, caseId):
-		return Case.delCase(int(caseId))
+	def delCase(cls, userId, caseId):
+		return Case.delCase(int(userId), int(caseId))
 
 	@classmethod
 	def addCase(cls, jsonCase):
@@ -23,12 +23,12 @@ class CaseBusiness(object):
 			)
 
 	@classmethod
-	def updateCase(cls, case):
-		case = Case()
-		for key in case:
-			if case[key]:
-				setattr(case, key, case[key])
-		return Case.updateCase(case)
+	def updateCase(cls, caseJson):
+		caseObj = Case()
+		for key in caseJson:
+			if caseJson[key]:
+				setattr(caseObj, key, caseJson[key])
+		return Case.updateCase(caseObj)
 
 	# @classmethod
 	# def getCaseList(cls, usrId):

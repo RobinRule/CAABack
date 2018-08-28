@@ -10,20 +10,21 @@ logger = logging.getLogger(__name__)
 class Case(object):
     """Case object"""
     MAX_ID = None
-    FIELD_LIST = {
+    FIELD_LIST = [
         'caseId',
-        'usrId',
+        'userId',
         'nameFirst',
         'nameLast',
         'contact',
         'statusId',
         'creatTime',
         'closeTime' 
-    }
+    ]
+    KEYS = ['caseId', 'userId']
     def __init__(self, dbRecord=None):
         if dbRecord:
             self.caseId = dbRecord[0]
-            self.usrId = dbRecord[1]
+            self.userId = dbRecord[1]
             self.nameFirst = dbRecord[2]
             self.nameLast = dbRecord[3]
             self.contact = dbRecord[4]
@@ -31,12 +32,8 @@ class Case(object):
             self.creatTime = timeParse(dbRecord[6])
             self.closeTime = timeParse(dbRecord[7]) if dbRecord[7] else dbRecord[7]
         else:
-            self.caseId = None
-            self.usrId = None
-            self.custId = None
-            self.statusId  = None
-            self.creatTime = None
-            self.closeTime = None
+            for attr in Case.FIELD_LIST:
+                setattr(self, attr, None)
     
     # add a new case to database, return a Case Id
     @classmethod
@@ -51,7 +48,7 @@ class Case(object):
         caseTable.put_item(
             Item={
                 'caseId': newCaseId,
-                'usrId': case.usrId,
+                'userId': case.usrId,
                 'custId': case.custId,
                 'status' : case.status,
                 'creatTime' : case.creatTime.isoformat(),
@@ -63,12 +60,13 @@ class Case(object):
 
     # remove a case from database by Id
     @classmethod
-    def delCase(cls, caseId):
+    def delCase(cls, userId, caseId):
         caseTable = DBManager.table("Cases")
         try:
             caseTable.delete_item(
                 Key={
-                    'caseId' : caseId
+                    'caseId' : caseId,
+                    'userId' : userId
                 }
             )
         except Exception as e:
@@ -81,26 +79,29 @@ class Case(object):
     # update a case
     @classmethod
     def updateCase(cls, case):
+        caseTable = DBManager.table('Cases')
         exp = "set "
-        for key in FIELD_LIST:
+        valMap = {}
+        for key in (set(cls.FIELD_LIST) - set(cls.KEYS)):
             attrVal = getattr(case, key)
             if attrVal:
-                exp += " {} = {},".format(
-                    key, 
-                    DBManager.dataToStr(attrVal)
-                    )
+                exp += " {keyName} = :{keyName},".format(keyName=key)
+                valMap[":{}".format(key)] = DBManager.dataToStr(attrVal)
         try:
             resp = caseTable.update_item(
                 Key={
                     'caseId': case.caseId,
+                    'userId': case.userId
                 },
                 UpdateExpression = exp[:-1],
+                ExpressionAttributeValues = valMap,
                 ReturnValues="UPDATED_NEW"
             )
         except Exception as e:
             logger.exception("Failed to update case: {}".format(case.caseId))
+            return False
         else:
-            return resp
+            return True
 
     # get a case by caseId
     @classmethod
@@ -114,21 +115,20 @@ class Case(object):
         )
 
         item = DBManager.toJsonData(response['Item'])
-        print(item)
         logger.debug("Returning case: {}".format(item['caseId']))
         return item
 
-    # get caseList by usrId, default return all case belongs to the usrId
-    @classmethod
-    def getCaseList(cls, usrId, limit):
-        response = DBManager.table("Cases").scan(
-            FilterExpression=Attr('usrId').eq(usrId)
-        )
-        print("GetCase succeeded:")
-        for i in response['Items']:
-            print(i['caseId'], ":", i['usrId'])
+    # # get caseList by userId, default return all case belongs to the usrId
+    # @classmethod
+    # def getCaseList(cls, usrId, limit):
+    #     response = DBManager.table("Cases").scan(
+    #         FilterExpression=Attr('usrId').eq(usrId)
+    #     )
+    #     print("GetCase succeeded:")
+    #     for i in response['Items']:
+    #         print(i['caseId'], ":", i['usrId'])
 
-        return response['Items']
+    #     return response['Items']
 
     def __repr__(self):
         return "{{ caseId : {}, usrId : {}, custId : {}, status : {}, creatTime : {}, closeTime : {}}}".\

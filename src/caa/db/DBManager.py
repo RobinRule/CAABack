@@ -30,12 +30,10 @@ class DBManager(object):
 
     @classmethod
     def dataToStr(cls, val):
-        if type(val) is str:
-            return "'{}'",format(val)
-        elif type(val) in [int, float]:
-            return str(val)
-        elif type(val) is datetime:
+        if type(val) is datetime:
             return "'{}'".format(val.isoformat())
+        else:
+            return val
 
     # return a connection
     @classmethod
@@ -58,7 +56,6 @@ class DBManager(object):
     # return a table reference
     @classmethod
     def table(cls, table_name):
-        print("Getting table 1")
         return cls.connection().getTable(table_name)
 
     @classmethod

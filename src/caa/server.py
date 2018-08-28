@@ -116,7 +116,7 @@ def index_api():
 ######################################################################
 # ADD a case
 ######################################################################
-@global_var.APP.route(global_var.URL_VERSION+"/cases", methods=['POST'])
+@global_var.APP.route(global_var.URL_VERSION+"/cases/", methods=['POST'])
 def add_case():
     try:
         payload = json.loads(request.data)
