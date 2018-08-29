@@ -23,4 +23,4 @@ COPY src/caa/ /app/caa/
 RUN ls -lart /app/caa/static/swagger/specification
 
 # Run the service
-CMD [ "python", "/app/caa/server.py" ]
+CMD [ "python", "/app/caa/server.py", "--config", "src/caa/config", "--mode", "service", "--log", "./log", "--loglevel", "DEBUG"]
