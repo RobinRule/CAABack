@@ -22,6 +22,5 @@ RUN pip install -r requirements.txt
 COPY src/caa/ /app/caa/
 RUN ls -lart /app/caa/static/swagger/specification
 
-ENTRYPOINT["python"]
 # Run the service
 CMD [ "python", "/app/caa/server.py", "--config", "/app/caa/config", "--mode", "service", "--log", "/var/log/CaaBack.log", "--loglevel", "DEBUG"]
