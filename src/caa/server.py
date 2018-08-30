@@ -51,8 +51,6 @@ parser.add_argument('--loglevel', help='logging level, ERROR by default', defaul
 
 global_var.ARGS = parser.parse_args()
 
-print("HAHAHHA:{}".format(global_var.ARGS))
-
 # read in config file
 configFile = global_var.ARGS.config
 global_var.CFG = None
