@@ -11,8 +11,7 @@ RUN apk add --update \
  && rm -rf /var/cache/apk/*
 
 # Expose any ports the app is expecting in the environment
-ENV PORT 5000
-EXPOSE $PORT
+EXPOSE 5000
 
 # Set up a working folder and install the pre-reqs
 WORKDIR /app
@@ -20,9 +19,8 @@ ADD requirements.txt /app
 RUN pip install -r requirements.txt
 
 # Add the code as the last Docker layer because it changes the most
-COPY static/ /app/static/
-RUN ls -lart /app/static/swagger/specification
 COPY src/caa/ /app/caa/
+RUN ls -lart /app/caa/static/swagger/specification
 
 # Run the service
-CMD [ "python", "/app/caa/server.py" ]
+CMD [ "python", "/app/caa/server.py", "--config", "/app/caa/config", "--mode", "service", "--log", "/app/caa/log", "--loglevel", "DEBUG"]

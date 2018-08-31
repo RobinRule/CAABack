@@ -18,29 +18,30 @@
 Access it at [https://qdm12.github.io/Devops_RESTful/index.html](https://qdm12.github.io/Devops_RESTful/index.html).
 
 ## I - What is it?
-- It is a RESTful API for a portfolio management.
-- It uses many technologies: Python, Flask, Vagrant, Swagger, Redis, Docker, ...
-- It can be run locally on a virtual machine with Vagrant or on Bluemix (IBM) remotely.
-- The Redis database is stored on IBM Bluemix
+- It is a RESTful API for a CAA management.
+- It uses many technologies: Python, Flask, Swagger, Docker, ...
+- It uses docker for containerization
 
 ## II - Access the API
-- Access the root URL of the API on Bluemix at [https://portfoliomgmt.mybluemix.net](https://portfoliomgmt.mybluemix.net)
-- Access the root URL of the API on the Bluemix container at [http://portfoliocontainer.mybluemix.net/](http://portfoliocontainer.mybluemix.net/)
-- Access it on your virtual Vagrant machine at [localhost:5000](localhost:5000)
+- Access the root URL of the API on AWS at [TO BE FILLED](https://portfoliomgmt.mybluemix.net)
+- Access it on your machine with docker at [localhost:5000](localhost:5000)
 - The root URL uses **Swagger** to show a descriptive list of all available RESTful calls such as `POST`, `DELETE`, `PUT` and `GET`.
 
 ## III - Obtain the source code and minimum requirements
-1. Install Vagrant from [vagrantup.com](https://www.vagrantup.com/downloads.html)
-2. Download the project
+1. Download the project
   - Without git
-    - Download the ZIP file by clicking [here](https://github.com/qdm12/Devops_RESTful/archive/master.zip).
+    - Download the ZIP file by clicking [here](https://github.com/CAA-dev/CAABack/archive/master.zip).
     - Extract the ZIP file.
   - With git (recommended)
     - Install git if you don't have it from [git-scm.com](https://git-scm.com/downloads) or use `apt-get install git`.
-    - Open a terminal and enter `git clone https://github.com/qdm12/Devops_RESTful.git`
-3. Go to the project directory with a terminal with `cd Devops_RESTFUL`
+    - Open a terminal and enter `git clone git@github.com:CAA-dev/CAABack.git`
+2. Go to the project directory with a terminal with `cd CAABack`
 
-## IV - Run it on your machine with Vagrant
+## IV - Run it on your machine directly
+1. run `pip3 install -r requirements.txt`
+2. run `python3 src/caa/server.py --config src/caa/config --mode service --log ./log --loglevel DEBUG`
+
+## V - Run it on your machine with docker(NEED TO BE EDITED)
 1. Make sure to follow the steps of **III - Obtain the source code and minimum requirements**. 
 2. Enter `vagrant up && vagrant ssh` (this will install the box, docker etc.)
 3. Enter `python /vagrant/server.py` (in the virtual machine you just logged in)
@@ -48,7 +49,7 @@ Access it at [https://qdm12.github.io/Devops_RESTful/index.html](https://qdm12.g
 5. You can also use the Chrome extension `Postman` for example to send RESTful requests such as `POST`. Install it [here](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en).
 6. To update Swagger, refer to the information in the [Github `static` directory](https://github.com/qdm12/Devops_RESTful/tree/master/static).
 
-## V - Run it on Bluemix
+## VI - Run it on AWS(NEED TO BE EDITED)
 1. Make sure to follow the steps of **III - Obtain the source code and minimum requirements** although you don't need Vagrant.
 2. Login to Bluemix as follows:
   - `cf login https://api.ng.bluemix.net -u username -o organization -s "Portfolio Management"`
@@ -58,43 +59,18 @@ Access it at [https://qdm12.github.io/Devops_RESTful/index.html](https://qdm12.g
 4. You can then access it at [https://portfoliomgmt.mybluemix.net](https://portfoliomgmt.mybluemix.net)
 
 
-## VI - Run it on a Docker container
+## VII - Run it on a Docker container
+1. Cd into project directory
+2. Enter `docker build -t caa-back .`
+3. Enter `docker run -d -p 5000:5000 caa-back`
+    If you want to see the logs, run it without `-d` flag
 
-### A) Build and run it on Vagrant
-1. Make sure to follow the steps of **III - Obtain the source code and minimum requirements**. 
-2. Enter `vagrant up && vagrant ssh` (this will install the box, docker etc.)
-3. Enter `cd /vagrant` (in the virtual machine you just logged in)
-4. Enter `docker build -t docker-portfoliomgmt .`
-  - **Don't forget the '.' !**
-  - This builds a Docker image `docker-portfoliomgmt` from the `Dockerfile` description file.
-  - You can list your local Docker images with `docker images` to make sure it was created.
-4. Run the Docker image with `docker run --rm -p 5000:5000 --link redis docker-portfoliomgmt`.
-  - The `--rm` option automatically removes the container when it exits.
-  - The `-p 5000:5000` option publishes the container's 5000 port to the host.
-  - The `--link redis` option links the `docker-portfoliomgmt` to the `redis` container.
-  - You can check the container is runnig with `docker ps -a`.
-5. As for *IV*, you can access the Python Flask server with your browser at [localhost:5000](localhost:5000). You can then make API calls with Swagger.
-
-### B) Push and run it on Bluemix
-1. Make sure you had followed the steps of *A) Build and run it on Vagrant*.
-2. In Vagrant (`vagrant up && vagrant ssh`), login in the bluemix server as follows:
-  - `cf login https://api.ng.bluemix.net -u username -o organization -s "Portfolio Management"`
-  - Enter the API endpoint as `https://api.ng.bluemix.net`
-  - Enter your password
-  - **TEMPORARY**: Enter `echo Y | cf install-plugin https://static-ice.ng.bluemix.net/ibm-containers-linux_x64` to install *cf ic*.
-  - `cf ic login`
-4. If not done already, create your namespace with `cf ic namespace set portfoliocontainer`
-5. Tag the Docker image with the remote container name `registry.ng.bluemix.net/portfoliocontainer/devops-hw2` with the following command: `docker tag docker-portfoliomgmt registry.ng.bluemix.net/portfoliocontainer/devops-hw2`
-6. Push it with `docker push registry.ng.bluemix.net/portfoliocontainer/devops-hw2`
-7. The Docker image should be on the Bluemix webpage. Click on it to create a container.
-8. Access the URL showing as *Routes* under *Group details* to access the running container. You can access it at [http://portfoliocontainer.mybluemix.net](http://portfoliocontainer.mybluemix.net)
-
-## VII - Test driven development and PyUnit
+## VIII - Test driven development and PyUnit
 1. If not on Vagrant, install **pip** and enter `pip install nose rednose coverage`
 2. Run the server tests and find the test coverage with `nosetests --rednose -v --with-coverage --cover-package=server`
 3. Or you can use `coverage run server_test.py && coverage report -m --include=server.py`
 
-## VIII - Behavior driven development and behave
+## - Behavior driven development and behave
 1. Turn vagrant on with `vagrant up && vagrant ssh`
 2. Enter `cd /vagrant && behave` and check all the tests pass
 
