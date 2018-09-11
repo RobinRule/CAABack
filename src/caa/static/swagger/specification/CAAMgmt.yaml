@@ -44,7 +44,7 @@ paths:
           description: Case is updated sucessfully
           schema: {$ref: '#/definitions/CasesResponse'}
 
-  /cases/{case_id}:
+  /cases/{user_id}/{case_id}:
     delete:
       summary: delete a case by id
       description: delete a case refers by the given case id
@@ -54,6 +54,11 @@ paths:
         - name: case_id
           in: path
           description: an integer id of case
+          required: true
+          type: integer
+        - name: user_id
+          in: path
+          description: an integer id of user
           required: true
           type: integer
       responses:
@@ -70,6 +75,11 @@ paths:
           description: an integer id of case
           required: true
           type: integer
+        - name: user_id
+          in: path
+          description: an integer id of user
+          required: true
+          type: integer
       tags:
         - Cases
       responses:
@@ -77,8 +87,8 @@ paths:
           description: Case founded
           schema: {$ref: '#/definitions/CasesResponse'}
 
-  /cases/usr_id/{usr_id}/:
-    get:
+  /cases/{user_id}/:
+    post:
       description: Search for usr's cases by id. By default the result is sorted by create time. User of this api can
         pass in a list of search specs to further refine the result. Relationship between different search spec is AND.
         In each search spec, you can specify the a specified val for the attr that you are searching for or you can specify
@@ -88,22 +98,41 @@ paths:
       tags:
         - Cases
       parameters:
-        - name: usr_id
+        - name: user_id
           in: path
           required: true
           type: integer
-        - name: search_specs
+        - name: body
           in: body
-          required: false
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/SearchSpec'
+            properties:
+              search_specs:
+                type: array
+                items:
+                  $ref: '#/definitions/SearchSpec'
+              window_size:
+                type: integer
       responses:
         200:
-          description: An array of cases
-          schema: {$ref: '#/definitions/CasesResponse'}
+          description: An transaction id
+          schema: {$ref: '#/definitions/SearchTransacId'}
 
+  /cases/transaction/{transaction_id}/:
+    get:
+      summary: Get cases by transaction id
+      description: Consume an transaction id and get certain numbers of cases
+      tags: 
+        - Cases
+      parameters: 
+        - name: transaction_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: responses for get case
+          schema: {$ref: '#/definitions/GetCasesResponse'}
+    
   /case_status/:
     get:
       summary: returns all defined case status
@@ -114,11 +143,11 @@ paths:
           description: OK
           schema: { $ref: '#/definitions/CasestatusResponse'}
 
-  /usr/{usr_id}:
+  /user/{user_id}:
     get:
       summary: get a usr's information by usrId
       parameters: 
-        - name: usr_id
+        - name: user_id
           in: path
           required: true
           type: integer
@@ -131,6 +160,9 @@ paths:
     
 
 definitions:
+
+  SearchTransacId:
+    type: string
 
   CaseId:
     type: integer
@@ -218,6 +250,18 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/CaseStatus'
+
+  GetCasesResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      transaction_id:
+        $ref: '#/definitions/SearchTransacId'
+      cases:
+        type: array
+        items:
+          $ref: '#/definitions/Case'
 
   SearchSpec:
     type: object
