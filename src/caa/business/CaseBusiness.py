@@ -37,5 +37,9 @@ class CaseBusiness(object):
 		return Case.updateCase(caseObj)
 
 	@classmethod
-	def getCaseList(cls, userId, specs = None):
+	def createTransaction(cls, userId, specs = None):
 		return Case.getCaseList(int(userId), specs)
+
+	@classmethod
+	def get_cases_by_transaction():
+		pass

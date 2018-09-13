@@ -114,8 +114,8 @@ paths:
                 type: integer
       responses:
         200:
-          description: An transaction id
-          schema: {$ref: '#/definitions/SearchTransacId'}
+          description: Contains an transaction id
+          schema: {$ref: '#/definitions/SearchCasesResponse'}
 
   /cases/transaction/{transaction_id}/:
     get:
@@ -262,7 +262,13 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Case'
-
+  SearchCasesResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      transaction_id:
+        $ref: '#/definitions/SearchTransacId'
   SearchSpec:
     type: object
     properties:
