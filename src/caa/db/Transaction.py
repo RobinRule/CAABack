@@ -1,6 +1,8 @@
 
 from .DBManager import DBManager
+from .BaseDataClass import BaseDataClass
 from .Case import Case
+
 from datetime import datetime
 from dateutil.parser import parse as timeParse
 from boto3.dynamodb.conditions import Key, Attr
@@ -9,26 +11,19 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
-class Transaction(object):
+class Transaction(BaseDataClass):
     """docstring for Transaction"""
-    FIELD_LIST = [
-        'transactionId',
-        'caseIds',
-        'transactionWindowSize'
-    ]
     
-    def __getattr__(self, key):
-        return self.attrMap[key]
-
-    def __setattr__(self, key, val):
-        self.attrMap[key] = val
-
     def __init__(self, jsonObj=None):
-        self.attrMap = {}
-        if jsonObj is not None:
-            for key, val in jsonObj.iteritems():
-                if key in Transaction.FIELD_LIST:
-                    self.attrMap[key] = jsonObj[key]
+        super(Transaction, self).__init__(
+            [
+                'transactionId',
+                'caseIds',
+                'transactionWindowSize'
+            ],
+            jsonObj
+        )
+
     @classmethod
     def creatNewTransactionId(cls):
         return "{}-{}".format( uuid.uuid4(), datetime.now().isoformat())
@@ -50,3 +45,9 @@ class Transaction(object):
         logger.info("Added transaction: {} to database".format(transactionId))
 
         return transactionId
+class ClassName(object):
+    """docstring for ClassName"""
+    def __init__(self, arg):
+        super(ClassName, self).__init__()
+        self.arg = arg
+        

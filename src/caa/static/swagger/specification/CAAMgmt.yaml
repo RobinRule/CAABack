@@ -44,6 +44,22 @@ paths:
           description: Case is updated sucessfully
           schema: {$ref: '#/definitions/CasesResponse'}
 
+  /cases/attr_name/{attr_name}:
+    get:
+      summary: Get all possible attribute values for this attribute
+      tags: 
+        - Cases
+      parameters: 
+        - name: attr_name
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: all possible attribute values
+          schema: {$ref: '#/definitions/AtrributeValuesResponse'}
+    
+
   /cases/{user_id}/{case_id}:
     delete:
       summary: delete a case by id
@@ -262,6 +278,17 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Case'
+
+  AtrributeValuesResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      attribute_vals:
+        type: array
+        items:
+          type: string
+
   SearchCasesResponse:
     type: object
     properties:
