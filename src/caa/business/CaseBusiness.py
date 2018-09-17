@@ -9,33 +9,24 @@ class CaseBusiness(object):
 	"""docstring for CaseBusiness"""
 	@classmethod
 	def getCase(cls, userId, caseId):
-		return Case.getCase(int(userId), int(caseId))
+		item = Case( {'caseId' : int(caseId), 'userId' : int(userId)} )
+		return Case.getItem(item)
 
 	@classmethod
 	def delCase(cls, userId, caseId):
-		return Case.delCase(int(userId), int(caseId))
+		item = Case( {'caseId' : int(caseId), 'userId' : int(userId)} )
+		return Case.deleteItem(item)
 
 	@classmethod
 	def addCase(cls, jsonCase):
-		newCaseId = Case.addCase(
-			Case([None,
-				jsonCase["userId"],
-				None,
-				None,
-				None,
-				jsonCase["statusId"],
-				"20180202",
-				None
-				])
+		newCaseId = Case.addItem(
+			Case(jsonCase)
 			)
 		return newCaseId
 
 	@classmethod
 	def updateCase(cls, caseJson):
-		caseObj = Case()
-		for key in caseJson:
-			if caseJson[key]:
-				setattr(caseObj, key, caseJson[key])
+		caseObj = Case(caseJson)
 		return Case.updateCase(caseObj)
 
 	@classmethod
