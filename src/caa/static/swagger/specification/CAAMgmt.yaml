@@ -14,7 +14,8 @@ paths:
   /cases:
     post:
       summary: Create a new case
-      description: Create a new case
+      description: Create a new case. Put the case you want to crreated in body. 
+        userId is mandatory, all other field is optional. Response will have created caseId.
       parameters: 
         - name: case
           in: body
@@ -30,7 +31,7 @@ paths:
           
     put:
       summary: Update an existing case
-      description: Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value will be updated
+      description: Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value will be updated. Return will contain updated case.
       parameters: 
         - name: case
           in: body
@@ -42,7 +43,7 @@ paths:
       responses:
         200:
           description: Case is updated sucessfully
-          schema: {$ref: '#/definitions/CasesResponse'}
+          schema: {$ref: '#/definitions/CaseResponse'}
 
   /cases/attr_name/{attr_name}:
     get:
@@ -58,7 +59,6 @@ paths:
         200:
           description: all possible attribute values
           schema: {$ref: '#/definitions/AtrributeValuesResponse'}
-    
 
   /cases/{user_id}/{case_id}:
     delete:
@@ -80,7 +80,7 @@ paths:
       responses:
         200:
           description: Case is deleted succesfully
-          schema: {$ref: '#/definitions/CasesResponse'}
+          schema: {$ref: '#/definitions/BoolResponse'}
     get:
       summary: Get a case by id
       description:
@@ -110,7 +110,8 @@ paths:
         In each search spec, you can specify the a specified val for the attr that you are searching for or you can specify
         you want the sorting order of returned result. When multiple sorting order is specified, the one appears first takes
         a higher priority.
-        An usr is only allowed to search his own cases and his team members' cases.
+        An user is only allowed to search his own cases and his team members' cases. This request returns an transaction id and first page of cases.
+        When results are less than one page. transaction id will be null.
       tags:
         - Cases
       parameters:
@@ -236,17 +237,29 @@ definitions:
     enum: 
       - ErrorNoSuchId
       - ErrorRequestIllFormated
-  
+  BoolResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      resullt:
+        type: boolean
+
   CaseIdResponse:
     type: object
     properties:
       error:
         $ref: '#/definitions/ErrorType'
       content:
-        type: array
-        items:
-          $ref: '#/definitions/CaseId'
-  
+        $ref: '#/definitions/CaseId'
+  CaseResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      content:
+        $ref: '#/definitions/Case'
+
   CasesResponse:
     type: object
     properties:
@@ -296,6 +309,10 @@ definitions:
         $ref: '#/definitions/ErrorType'
       transaction_id:
         $ref: '#/definitions/SearchTransacId'
+      cases:
+        type: array
+        items:
+          $ref: '#/definitions/Case'
   SearchSpec:
     type: object
     properties:

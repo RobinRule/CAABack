@@ -11,10 +11,10 @@ class User(BaseDataClass):
     def __init__(self, dbRecord=None, jsonObj=None):
         super(User, self).__init__(
             [
-                ['userId'], #KEYS
-                'nameFirst',
-                'nameLast',
-                'contact'
+                [("userId", int) ], #KEYS
+                ('nameFirst', str),
+                ('nameLast', str),
+                ('contact' , str)
             ],
             jsonObj
         )

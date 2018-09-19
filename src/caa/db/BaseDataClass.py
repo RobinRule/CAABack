@@ -1,6 +1,11 @@
 
 from .DBManager import DBManager
-from boto3.dynamodb.conditions import Key, Attr   
+from boto3.dynamodb.conditions import Key, Attr
+from global_var import Errors 
+from datetime import datetime
+from dateutil.parser import parse as timeParse
+from copy import deepcopy
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -19,24 +24,69 @@ class BaseDataClass(object):
     #     else:
     #         super(BaseDataClass, self).__setattr__(key, value)
 
-    def __init__(self, field_list, jsonObj=None):
+    def __init__(self, fieldList, jsonObj=None):
         super(BaseDataClass, self).__init__()
-        self._keys = field_list[0]
-        self._field_list = field_list[1:] + field_list[0]
-        for field in self._field_list:
-            setattr(self, field, None)
+        self._keys = [ key[0] for key in fieldList[0] ]
+        
+        fieldList = fieldList[1:] + fieldList[0]
+        
+        self._fieldTypeMap = {}
+        for fieldName, fieldType in fieldList:
+            self._fieldTypeMap[fieldName] = fieldType
 
+        for field in self._fieldTypeMap.keys():
+            setattr(self, field, None)
+        logger.info("Initializing using:{}".format(jsonObj))
         if jsonObj is not None:
+            jsonObj = self.schemalize(jsonObj)
             for key, val in jsonObj.items():
-                if key in self._field_list:
+                if key in self._fieldTypeMap and jsonObj[key] is not None:
                     setattr(self, key, jsonObj[key])
 
+    def _convertDataToType(self, data, targetType):
+        if targetType is datetime:
+            return timeParse(data)
+        else:
+            return targetType(data)
+
+    def schemalize(self, jsonObj):
+        res = deepcopy(jsonObj)
+        for key, val in jsonObj.items():
+            if val is None:
+                del res[key]
+                continue
+
+            resVal = val
+            resType = self._fieldTypeMap[key]
+            if type(val) is not resType:
+                resVal = self._convertDataToType( val, resType)
+            res[key] = resVal
+        return res
+
+    def getDBSafeAttr(self, key):
+        attrType = self._fieldTypeMap[key]
+        if attrType is datetime:
+            val = getattr(self, key)
+            if val is not None:
+                return val.isoformat()
+            else:
+                return None
+        return getattr(self, key)
+
+    def getDBSafeAttrMap(self):
+        attrMap =  {}
+        for field in self._fieldTypeMap.keys():
+            fieldVal = self.getDBSafeAttr(field)
+            if fieldVal is not None:
+                attrMap[field] =  fieldVal
+        return attrMap
+
     def getAttrs(self):
-        return self._field_list
+        return self._fieldTypeMap.keys()
 
     def getAttrMap(self):
         attrMap =  {}
-        for field in self._field_list:
+        for field in self._fieldTypeMap.keys():
             attrMap[field] =  getattr(self, field)
         return attrMap
 
@@ -97,7 +147,7 @@ class BaseDataClass(object):
             setattr( item, keys[0], newId)
 
         itemTable.put_item(
-            Item=item.getAttrMap()
+            Item=item.getDBSafeAttrMap()
         )
         logger.info("Added item: {} to database".format(newId))
         
@@ -110,9 +160,10 @@ class BaseDataClass(object):
             returns true when deletion succed 
         '''
         itemTable = cls.getItemTable(item)
+        keyDict = item.getKeyDict()
         try:
             itemTable.delete_item(
-                Key= item.getKeyDict()
+                Key = keyDict
             )
         except Exception as e:
             logger.exception("Failed to delete item : {}".format(keyDict))
@@ -127,7 +178,7 @@ class BaseDataClass(object):
         exp = "set "
         valMap = {}
         for key in (set(item.getAttrs()) - set(item.getKeys())):
-            attrVal = getattr(item, key)
+            attrVal = item.getDBSafeAttr(key)
             if attrVal:
                 exp += " {keyName} = :{keyName},".format(keyName=key)
                 valMap[":{}".format(key)] = DBManager.dataToStr(attrVal)
@@ -156,11 +207,53 @@ class BaseDataClass(object):
         response = itemTable.get_item(
             Key= keys
         )
-
+        if 'Item' not in response:
+            logger.info("Requiring item: {} does not exist.".format(keys))
+            return None
         reItem = DBManager.toJsonData(response['Item'])
         logger.debug("Returning item: {}".format(keys))
         return reItem
 
     @classmethod
-    def getItems(cls, item):
-        pass
+    def getItems(cls, specs):
+        '''
+            
+        '''
+        itemTable = cls.getItemTable(item)
+        keys = item.getKeys()
+
+        filterExp = None
+        keyDict = {}
+        sortSpecs = []
+        for spec in specs:
+            attrName = spec['attr_name']
+            attrVal = spec.get('attr_val')
+            if attrName in keys and attrVal is not None:
+                keyDict[attrName] = attrVal
+            #This is an filtering spec
+            if attrVal is not None:
+                if filterExp is not None:
+                    filterExp &= Attr(attrName).eq(attrVal)
+                else:
+                    filterExp = Attr(attrName).eq(attrVal)
+            #This is an sorting spec
+            if 'descending' in spec:
+                sortSpecs.append(spec)
+
+        keyExp = None
+        for attrName, attrVal in keyDict.items():
+            if keyExp is None:
+                keyExp = Key(attrName).eq(attrVal)
+            else:
+                keyExp &= Key(attrName).eq(attrVal)
+        try:
+            response = itemTable.query(
+                KeyConditionExpression=keyExp,
+                FilterExpression=filterExp
+            )
+        except Exception as e:
+            logger.exception(e)
+            return Errors.ErrorRequestIllFormated
+        #TODO: sorting
+
+        return DBManager.toJsonData(response['Items'])

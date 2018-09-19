@@ -121,7 +121,7 @@ def add_case():
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-    return reply( {"caseId": CaseBusiness.addCase(payload)}, HTTP_200_OK)
+    return reply( CaseBusiness.addCase(payload), HTTP_200_OK)
 
 ######################################################################
 # DELETE a case
@@ -140,7 +140,7 @@ def update_case():
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-    return reply( {"status": CaseBusiness.updateCase(payload)}, HTTP_200_OK)
+    return reply( CaseBusiness.updateCase(payload), HTTP_200_OK)
 
 ######################################################################
 # GET a case by id
@@ -159,7 +159,7 @@ def create_transaction(user_id):
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-
+    
     return reply( CaseBusiness.createTransaction(user_id, payload), HTTP_200_OK)
 
 ######################################################################

@@ -2,6 +2,7 @@
 from db.Case import Case
 from .UserBusiness import UserBusiness
 from .TransactionBusiness import TransactionBusiness
+from global_var import Errors
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,24 +11,32 @@ class CaseBusiness(object):
 	@classmethod
 	def getCase(cls, userId, caseId):
 		item = Case( {'caseId' : int(caseId), 'userId' : int(userId)} )
-		return Case.getItem(item)
+		item = Case.getItem(item)
+		if item is None:
+			return { "error" : str(Errors.ErrorNoSuchId) }
+		return { "content" : item }
 
 	@classmethod
 	def delCase(cls, userId, caseId):
 		item = Case( {'caseId' : int(caseId), 'userId' : int(userId)} )
-		return Case.deleteItem(item)
+		return{ "result" : Case.deleteItem(item) }
 
 	@classmethod
 	def addCase(cls, jsonCase):
 		newCaseId = Case.addItem(
 			Case(jsonCase)
 			)
-		return newCaseId
+		if newCaseId is None:
+			return { "error" : str(Errors.ErrorRequestIllFormated)}
+		return{ "content" : newCaseId }
 
 	@classmethod
 	def updateCase(cls, caseJson):
 		caseObj = Case(caseJson)
-		return Case.updateCase(caseObj)
+		if Case.updateItem(caseObj):
+			return { "content" : Case.getItem(caseObj) }
+		return { "error" : str(Errors.ErrorNoSuchId) }
+
 
 	@classmethod
 	def createTransaction(cls, callerUserId, userId, specs = None):
@@ -37,16 +46,23 @@ class CaseBusiness(object):
 			return { "error" : "Caller doesn't have enough priviledge to perform this operation" }
 
 		# Step 2: perfom query
-		caseIds = Case.getCaseList(int(userId), specs)
+		specs = [{
+			"attr_name" : "userId",
+			"attr_val" : userId
+		}] + specs
+		cases = Case.getItems(specs)
 
 		# Step 3: create Transaction
-		transacId = TransactionBusiness.createTransaction( winsize, caseIds[winSize:] )
+		transacJson = {
+		    "transactionWindowSize" : winsize,
+			"caseIds" : [{'userId' : case['userId'], 'caseId' : case['caseId'] } for case in cases[winSize:]]
+		}
+		transacId = TransactionBusiness.addItem(Transaction(transacJson))
 
-		# Step 4: get first page of cases
-		cases = Case.getCasesByIds(caseIds[:winSize])
+		# Step 4: return first page of cases
 		return {
 			"transaction_id" : transacId,
-			"cases" : cases
+			"cases" : cases[:winSize]
 		}
 
 	@classmethod
