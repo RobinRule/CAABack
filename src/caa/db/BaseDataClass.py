@@ -108,8 +108,10 @@ class BaseDataClass(object):
         return self.getAttrMap() == obj.getAttrMap()
 
     @classmethod
-    def getItemTable(cls, item):
-        className = item.__class__.__name__
+    def getItemTable(cls, itemOrItemClass):
+        className = itemOrItemClass.__class__.__name__
+        if type(itemOrItemClass) is type:
+            className = itemOrItemClass.__name__
         logger.info("Getting table: {}".format(className))
         return DBManager.table(className)
 
@@ -215,7 +217,7 @@ class BaseDataClass(object):
         return reItem
 
     @classmethod
-    def getItems(cls, specs):
+    def getItems(cls, specs, item):
         '''
             
         '''
@@ -228,14 +230,17 @@ class BaseDataClass(object):
         for spec in specs:
             attrName = spec['attr_name']
             attrVal = spec.get('attr_val')
-            if attrName in keys and attrVal is not None:
-                keyDict[attrName] = attrVal
-            #This is an filtering spec
-            if attrVal is not None:
-                if filterExp is not None:
-                    filterExp &= Attr(attrName).eq(attrVal)
-                else:
-                    filterExp = Attr(attrName).eq(attrVal)
+            if attrName in keys:
+                if attrVal is not None:
+                    keyDict[attrName] = attrVal
+            else:
+                #This is an filtering spec
+                if attrVal is not None:
+                    logger.info("Adding filtering exp: {},{}".format(attrName, attrVal))
+                    if filterExp is not None:
+                        filterExp &= Attr(attrName).eq(attrVal)
+                    else:
+                        filterExp = Attr(attrName).eq(attrVal)
             #This is an sorting spec
             if 'descending' in spec:
                 sortSpecs.append(spec)
@@ -246,11 +251,14 @@ class BaseDataClass(object):
                 keyExp = Key(attrName).eq(attrVal)
             else:
                 keyExp &= Key(attrName).eq(attrVal)
+        queryKwargs = {}
+        if keyExp is not None:
+            queryKwargs['KeyConditionExpression'] = keyExp
+        if filterExp is not None:
+            queryKwargs['FilterExpression'] = filterExp
+
         try:
-            response = itemTable.query(
-                KeyConditionExpression=keyExp,
-                FilterExpression=filterExp
-            )
+            response = itemTable.query(**queryKwargs)
         except Exception as e:
             logger.exception(e)
             return Errors.ErrorRequestIllFormated

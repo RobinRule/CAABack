@@ -39,8 +39,9 @@ class CaseBusiness(object):
 
 
 	@classmethod
-	def createTransaction(cls, callerUserId, userId, specs = None):
+	def createTransaction(cls, callerToken, userId, winSize, specs = None):
 		# Step 1: check this does this client has priviledges to get data fo this userId
+		callerUserId = callerToken #TODO: convert this to userId
 		priviledge = UserBusiness.checkPriviledges(callerUserId, userId)
 		if "read" not in priviledge:
 			return { "error" : "Caller doesn't have enough priviledge to perform this operation" }
@@ -48,14 +49,19 @@ class CaseBusiness(object):
 		# Step 2: perfom query
 		specs = [{
 			"attr_name" : "userId",
-			"attr_val" : userId
+			"attr_val" : int(userId)
 		}] + specs
-		cases = Case.getItems(specs)
+		cases = Case.getItems(specs, Case())
+		if type(cases) is Errors:
+			return { "error" : str(cases) }
+		# if winSize is bigger than number of cases, return all at once
+		if len(cases) < winSize:
+			return { "cases" : cases }
 
 		# Step 3: create Transaction
 		transacJson = {
 		    "transactionWindowSize" : winsize,
-			"caseIds" : [{'userId' : case['userId'], 'caseId' : case['caseId'] } for case in cases[winSize:]]
+			"itemIds" : [{'userId' : case['userId'], 'caseId' : case['caseId'] } for case in cases[winSize:]]
 		}
 		transacId = TransactionBusiness.addItem(Transaction(transacJson))
 

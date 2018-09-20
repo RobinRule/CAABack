@@ -160,7 +160,14 @@ def create_transaction(user_id):
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
     
-    return reply( CaseBusiness.createTransaction(user_id, payload), HTTP_200_OK)
+    return reply(
+        CaseBusiness.createTransaction(
+            callerToken=None,
+            userId=user_id,
+            winSize=payload["window_size"],
+            specs=payload["search_specs"]
+        ),
+        HTTP_200_OK)
 
 ######################################################################
 # GET cases by transaction_id

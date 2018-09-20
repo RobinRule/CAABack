@@ -18,7 +18,7 @@ class Transaction(BaseDataClass):
         super(Transaction, self).__init__(
             [
                 [ ('transactionId', str)],
-                ( 'caseIds', list )
+                ( 'itemIds', list )
                 ( 'transactionWindowSize', int)
             ],
             jsonObj
