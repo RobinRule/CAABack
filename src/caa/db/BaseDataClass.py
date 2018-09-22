@@ -1,7 +1,8 @@
 
 from .DBManager import DBManager
 from boto3.dynamodb.conditions import Key, Attr
-from global_var import Errors 
+from global_var import Errors
+import operator
 from datetime import datetime
 from dateutil.parser import parse as timeParse
 from copy import deepcopy
@@ -218,7 +219,7 @@ class BaseDataClass(object):
         )
         if 'Item' not in response:
             logger.info("Requiring item: {} does not exist.".format(keys))
-            return None
+            return Errors.ErrorNoSuchId
         reItem = DBManager.toJsonData(response['Item'])
         logger.debug("getItem item: {}".format(reItem))
         return reItem
@@ -232,7 +233,7 @@ class BaseDataClass(object):
 
         filterExp = None
         keyDict = {}
-        sortSpecs = []
+        sortSpec = None
         for spec in specs:
             attrName = spec['attr_name']
             attrVal = spec.get('attr_val')
@@ -249,7 +250,7 @@ class BaseDataClass(object):
                         filterExp = Attr(attrName).eq(attrVal)
             #This is an sorting spec
             if 'descending' in spec:
-                sortSpecs.append(spec)
+                sortSpec = spec
 
         keyExp = None
         for attrName, attrVal in keyDict.items():
@@ -268,9 +269,12 @@ class BaseDataClass(object):
         except Exception as e:
             logger.exception(e)
             return Errors.ErrorRequestIllFormated
-        #TODO: sorting
+        # sorting
+        items = sorted(
+            DBManager.toJsonData(response['Items']),
+            key = lambda item: item[sortSpec['attr_name']], reverse=sortSpec['descending']
+        )
 
-        items = DBManager.toJsonData(response['Items'])
         logger.info("getItemsByQuery :{}".format(items))
         return items
 
@@ -290,15 +294,18 @@ class BaseDataClass(object):
                 keyExp = subKeyExp
             else:
                 keyExp |= subKeyExp
-
+        itemIdToSeq = { str(itemId) : idx for idx, itemId in enumerate(itemIds)}
         try:
             response = itemTable.query(KeyConditionExpression=keyExp)
         except Exception as e:
             logger.exception(e)
             return Errors.ErrorRequestIllFormated
-        #TODO: sort items according to ids
 
-        items = DBManager.toJsonData(response['Items'])
+        # sort items according to original id position
+        items = sorted(
+            DBManager.toJsonData(response['Items']),
+            key = lambda oneitem: itemIdToSeq[str({ item.key : oneitem[item.key] })]
+        )
         logger.info("getItemsByIds :{}".format(items))
         return items
 

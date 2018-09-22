@@ -29,11 +29,12 @@ class TransactionBusiness(object):
 
 		# Step 3: Generate a new trasaction
 		newTransactionId = None
-		if len(returnItems) > winSize:
+		if len(itemIds) > winSize:
 			newTransactionJson = {
 				'itemIds' : itemIds[winSize:],
 				'winSize' : winSize,
-				'timeToLive' : 10
+				'timeToLive' : 10,
+				'userId' : callerUserId
 			}
 			newTransactionId = Transaction.addItem(Transaction(newTransactionJson))
 
