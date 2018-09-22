@@ -17,6 +17,8 @@ SRC_PATH = os.path.dirname(os.path.abspath(__file__))
 
 class Errors(Enum):
 	ErrorNoSuchId = "ErrorNoSuchId"
+	ErrorRequestIllFormated = "ErrorRequestIllFormated"
+	ErrorNotAuthoriedOperation = "ErrorNotAuthoriedOperation"
 
 #declare in here, initialized in server.py
 CFG = {}

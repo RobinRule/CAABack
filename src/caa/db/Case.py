@@ -13,12 +13,13 @@ class Case(BaseDataClass):
     def __init__(self, jsonObj=None):
         super(Case, self).__init__(
             [
-                [('userId', int), ('caseId', int)], #KEYS
+                ('caseId', str), #Key
+                ('userId', str), 
                 ('nameFirst', str ),
                 ('nameLast', str ),
                 ('contact', str ),
-                ('statusId', int),
-                ('creatTime', datetime),
+                ('statusId', str),
+                ('createTime', datetime),
                 ('closeTime', datetime)
             ],
             jsonObj

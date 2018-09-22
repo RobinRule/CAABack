@@ -17,15 +17,17 @@ class Transaction(BaseDataClass):
     def __init__(self, jsonObj=None):
         super(Transaction, self).__init__(
             [
-                [ ('transactionId', str)],
-                ( 'itemIds', list )
-                ( 'transactionWindowSize', int)
+                ( 'transactionId', str),
+                ( 'itemIds', list),
+                ( 'userId', str),
+                ( 'winSize', int),
+                ( 'timeToLive', int)
             ],
             jsonObj
         )
 
     @classmethod
-    def creatNewTransactionId(cls):
+    def newItemId(cls, item):
         return "{}-{}".format( uuid.uuid4(), datetime.now().isoformat())
 
         

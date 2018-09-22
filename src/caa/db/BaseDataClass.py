@@ -5,7 +5,8 @@ from global_var import Errors
 from datetime import datetime
 from dateutil.parser import parse as timeParse
 from copy import deepcopy
-
+import random
+import string
 import logging
 logger = logging.getLogger(__name__)
 
@@ -26,10 +27,9 @@ class BaseDataClass(object):
 
     def __init__(self, fieldList, jsonObj=None):
         super(BaseDataClass, self).__init__()
-        self._keys = [ key[0] for key in fieldList[0] ]
-        
-        fieldList = fieldList[1:] + fieldList[0]
-        
+
+        setattr(self, 'key', fieldList[0][0])
+
         self._fieldTypeMap = {}
         for fieldName, fieldType in fieldList:
             self._fieldTypeMap[fieldName] = fieldType
@@ -63,6 +63,21 @@ class BaseDataClass(object):
             res[key] = resVal
         return res
 
+
+    def schemalizeNoTime(self, jsonObj):
+        res = deepcopy(jsonObj)
+        for key, val in jsonObj.items():
+            if val is None:
+                del res[key]
+                continue
+
+            resVal = val
+            resType = self._fieldTypeMap[key]
+            if type(val) is not resType and resType is not datetime:
+                resVal = self._convertDataToType( val, resType)
+            res[key] = resVal
+        return res
+
     def getDBSafeAttr(self, key):
         attrType = self._fieldTypeMap[key]
         if attrType is datetime:
@@ -90,22 +105,35 @@ class BaseDataClass(object):
             attrMap[field] =  getattr(self, field)
         return attrMap
 
-    def getKeys(self):
-        return self._keys
-
     def getKeyDict(self):
-        keyDict = {}
-        for key in self.getKeys():
-            keyVal = getattr(self, key)
-            if keyVal is not None:
-                keyDict[key] = keyVal
-        return keyDict
+        return { self.key : getattr(self, self.key)}
 
     def __repr__(self):
         return str(self.getAttrMap())
 
     def __eq__(self, obj):
         return self.getAttrMap() == obj.getAttrMap()
+
+    @classmethod
+    def newItemId(cls, item):
+        def randId():
+            return ''.join(random.choices(string.ascii_uppercase, k=3))\
+                + ''.join(random.choices(string.digits, k=4))
+
+        newId = randId()
+        itemTable = cls.getItemTable(item)
+        tableKey = getattr( item, 'key')
+
+        while True:
+            response = itemTable.query(
+                KeyConditionExpression=Key(tableKey).eq(newId)
+            )
+            if len(response['Items']) != 0:
+                newId = randId()
+            else:
+                logger.info("Allocated id is :{}".format(newId))
+                return newId
+
 
     @classmethod
     def getItemTable(cls, itemOrItemClass):
@@ -121,32 +149,11 @@ class BaseDataClass(object):
             Use idGen to control the way id is generated
         '''
         itemTable = cls.getItemTable(item)
-        keys = item.getKeys()
-        logger.info("Keys are: {}".format(keys))
-        def generateKeyConditionExpression(indexKeys, item):
-            expression = Key(indexKeys[0]).eq(getattr(item, indexKeys[0]))
-            if len(indexKeys) == 2:
-                expression &= Key(indexKeys[1]).gt(0)
-            return expression
-
-        newId = 1
-        if idGen is None:
-            response = itemTable.query(
-                Limit = 1,
-                ScanIndexForward = False,
-                KeyConditionExpression=generateKeyConditionExpression(keys, item)
-            )
-            if len(response['Items']):
-                largestId = response['Items'][0][keys[1]]
-                newId = int(largestId) + 1
-        else:
-            newId = idGen()
-        # TODO: base on the input to decide what to add
-        logger.info("Allocated id is :{}".format(newId))
-        if len(keys) == 2:
-            setattr( item, keys[1], newId)
-        else:
-            setattr( item, keys[0], newId)
+        tableKey = getattr( item, 'key')
+        logger.info("Key are: {}".format(tableKey))
+        # Generate a new item id
+        newId = cls.newItemId(item)
+        setattr( item, tableKey, newId)
 
         itemTable.put_item(
             Item=item.getDBSafeAttrMap()
@@ -179,7 +186,7 @@ class BaseDataClass(object):
         itemTable = cls.getItemTable(item)
         exp = "set "
         valMap = {}
-        for key in (set(item.getAttrs()) - set(item.getKeys())):
+        for key in (set(item.getAttrs()) - set([item.key])):
             attrVal = item.getDBSafeAttr(key)
             if attrVal:
                 exp += " {keyName} = :{keyName},".format(keyName=key)
@@ -213,16 +220,15 @@ class BaseDataClass(object):
             logger.info("Requiring item: {} does not exist.".format(keys))
             return None
         reItem = DBManager.toJsonData(response['Item'])
-        logger.debug("Returning item: {}".format(keys))
+        logger.debug("getItem item: {}".format(reItem))
         return reItem
 
     @classmethod
-    def getItems(cls, specs, item):
+    def getItemsByQuery(cls, specs, item):
         '''
             
         '''
         itemTable = cls.getItemTable(item)
-        keys = item.getKeys()
 
         filterExp = None
         keyDict = {}
@@ -230,7 +236,7 @@ class BaseDataClass(object):
         for spec in specs:
             attrName = spec['attr_name']
             attrVal = spec.get('attr_val')
-            if attrName in keys:
+            if attrName == item.key:
                 if attrVal is not None:
                     keyDict[attrName] = attrVal
             else:
@@ -258,10 +264,41 @@ class BaseDataClass(object):
             queryKwargs['FilterExpression'] = filterExp
 
         try:
-            response = itemTable.query(**queryKwargs)
+            response = itemTable.scan(**queryKwargs)
         except Exception as e:
             logger.exception(e)
             return Errors.ErrorRequestIllFormated
         #TODO: sorting
 
-        return DBManager.toJsonData(response['Items'])
+        items = DBManager.toJsonData(response['Items'])
+        logger.info("getItemsByQuery :{}".format(items))
+        return items
+
+    @classmethod
+    def getItemsByIds(cls, itemIds, item):
+        itemTable = cls.getItemTable(item)
+
+        keyExp = None
+        for itemId in itemIds:
+            subKeyExp = None
+            for keyName, keyVal in itemId.items():
+                if subKeyExp is None:
+                    subKeyExp = Key(keyName).eq(keyVal)
+                else:
+                    subKeyExp &= Key(keyName).eq(keyVal)
+            if keyExp is None:
+                keyExp = subKeyExp
+            else:
+                keyExp |= subKeyExp
+
+        try:
+            response = itemTable.query(KeyConditionExpression=keyExp)
+        except Exception as e:
+            logger.exception(e)
+            return Errors.ErrorRequestIllFormated
+        #TODO: sort items according to ids
+
+        items = DBManager.toJsonData(response['Items'])
+        logger.info("getItemsByIds :{}".format(items))
+        return items
+

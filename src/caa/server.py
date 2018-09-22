@@ -162,7 +162,7 @@ def create_transaction(user_id):
     
     return reply(
         CaseBusiness.createTransaction(
-            callerToken=None,
+            callerToken="1",
             userId=user_id,
             winSize=payload["window_size"],
             specs=payload["search_specs"]
@@ -174,7 +174,7 @@ def create_transaction(user_id):
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/transaction_id/<transaction_id>/", methods=['GET'])
 def get_cases_by_transaction(transaction_id):
-    return reply( CaseBusiness.getCasesByTransacId(transaction_id), HTTP_200_OK)
+    return reply( CaseBusiness.getCasesByTransacId("1", transaction_id), HTTP_200_OK)
 
 
 

@@ -1,6 +1,7 @@
 
 from db.Case import Case
 from .UserBusiness import UserBusiness
+from db.Transaction import Transaction
 from .TransactionBusiness import TransactionBusiness
 from global_var import Errors
 import logging
@@ -10,7 +11,7 @@ class CaseBusiness(object):
 	"""docstring for CaseBusiness"""
 	@classmethod
 	def getCase(cls, userId, caseId):
-		item = Case( {'caseId' : int(caseId), 'userId' : int(userId)} )
+		item = Case( {'caseId' : caseId, 'userId' : userId} )
 		item = Case.getItem(item)
 		if item is None:
 			return { "error" : str(Errors.ErrorNoSuchId) }
@@ -18,7 +19,7 @@ class CaseBusiness(object):
 
 	@classmethod
 	def delCase(cls, userId, caseId):
-		item = Case( {'caseId' : int(caseId), 'userId' : int(userId)} )
+		item = Case( {'caseId' : caseId, 'userId' : userId} )
 		return{ "result" : Case.deleteItem(item) }
 
 	@classmethod
@@ -49,21 +50,23 @@ class CaseBusiness(object):
 		# Step 2: perfom query
 		specs = [{
 			"attr_name" : "userId",
-			"attr_val" : int(userId)
+			"attr_val" : userId
 		}] + specs
-		cases = Case.getItems(specs, Case())
+		cases = Case.getItemsByQuery(specs, Case())
 		if type(cases) is Errors:
 			return { "error" : str(cases) }
 		# if winSize is bigger than number of cases, return all at once
-		if len(cases) < winSize:
+		if len(cases) <= winSize:
 			return { "cases" : cases }
 
 		# Step 3: create Transaction
 		transacJson = {
-		    "transactionWindowSize" : winsize,
-			"itemIds" : [{'userId' : case['userId'], 'caseId' : case['caseId'] } for case in cases[winSize:]]
+		    "winSize" : winSize,
+		    "userId" : callerUserId,
+			"itemIds" : [{'caseId' : case['caseId'] } for case in cases[winSize:]],
+			'timeToLive' : 10
 		}
-		transacId = TransactionBusiness.addItem(Transaction(transacJson))
+		transacId = Transaction.addItem(Transaction(transacJson))
 
 		# Step 4: return first page of cases
 		return {
@@ -72,6 +75,6 @@ class CaseBusiness(object):
 		}
 
 	@classmethod
-	def get_cases_by_transaction():
-		# first authorize whether this 
-		pass
+	def getCasesByTransacId(cls, callerToken, transactionId):
+		# first authorize whether this caller is the same as the 
+		return TransactionBusiness.consumeTransaction(callerToken, transactionId, Case())

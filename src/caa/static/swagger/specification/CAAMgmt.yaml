@@ -207,11 +207,13 @@ definitions:
     properties:
       caseId:
         $ref: '#/definitions/CaseId'
-      usrId:
+      userId:
         $ref: '#/definitions/UserId'
-      custName:
+      nameFirst:
         type: string
-      custContact:
+      nameLast:
+        type: string
+      contact:
         type: string
       statusId:
         $ref: '#/definitions/CaseStatusId'
