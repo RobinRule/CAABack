@@ -14,7 +14,8 @@ paths:
   /cases:
     post:
       summary: Create a new case
-      description: Create a new case
+      description: Create a new case. Put the case you want to crreated in body. 
+        userId is mandatory, all other field is optional. Response will have created caseId.
       parameters: 
         - name: case
           in: body
@@ -30,7 +31,7 @@ paths:
           
     put:
       summary: Update an existing case
-      description: Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value will be updated
+      description: Update an existing case by providing a case. Id in that case refers to which case you are updating, any attribute with a non-null value will be updated. Return will contain updated case.
       parameters: 
         - name: case
           in: body
@@ -42,9 +43,24 @@ paths:
       responses:
         200:
           description: Case is updated sucessfully
-          schema: {$ref: '#/definitions/CasesResponse'}
+          schema: {$ref: '#/definitions/CaseResponse'}
 
-  /cases/{case_id}:
+  /cases/attr_name/{attr_name}:
+    get:
+      summary: Get all possible attribute values for this attribute
+      tags: 
+        - Cases
+      parameters: 
+        - name: attr_name
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: all possible attribute values
+          schema: {$ref: '#/definitions/AtrributeValuesResponse'}
+
+  /cases/{user_id}/{case_id}:
     delete:
       summary: delete a case by id
       description: delete a case refers by the given case id
@@ -56,10 +72,15 @@ paths:
           description: an integer id of case
           required: true
           type: integer
+        - name: user_id
+          in: path
+          description: an integer id of user
+          required: true
+          type: integer
       responses:
         200:
           description: Case is deleted succesfully
-          schema: {$ref: '#/definitions/CasesResponse'}
+          schema: {$ref: '#/definitions/BoolResponse'}
     get:
       summary: Get a case by id
       description:
@@ -70,6 +91,11 @@ paths:
           description: an integer id of case
           required: true
           type: integer
+        - name: user_id
+          in: path
+          description: an integer id of user
+          required: true
+          type: integer
       tags:
         - Cases
       responses:
@@ -77,33 +103,53 @@ paths:
           description: Case founded
           schema: {$ref: '#/definitions/CasesResponse'}
 
-  /cases/usr_id/{usr_id}/:
-    get:
+  /cases/{user_id}/:
+    post:
       description: Search for usr's cases by id. By default the result is sorted by create time. User of this api can
         pass in a list of search specs to further refine the result. Relationship between different search spec is AND.
         In each search spec, you can specify the a specified val for the attr that you are searching for or you can specify
         you want the sorting order of returned result. When multiple sorting order is specified, the one appears first takes
         a higher priority.
-        An usr is only allowed to search his own cases and his team members' cases.
+        An user is only allowed to search his own cases and his team members' cases. This request returns an transaction id and first page of cases.
+        When results are less than one page. transaction id will be null.
       tags:
         - Cases
       parameters:
-        - name: usr_id
+        - name: user_id
           in: path
           required: true
           type: integer
-        - name: search_specs
+        - name: body
           in: body
-          required: false
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/SearchSpec'
+            properties:
+              search_specs:
+                type: array
+                items:
+                  $ref: '#/definitions/SearchSpec'
+              window_size:
+                type: integer
       responses:
         200:
-          description: An array of cases
-          schema: {$ref: '#/definitions/CasesResponse'}
+          description: Contains an transaction id
+          schema: {$ref: '#/definitions/SearchCasesResponse'}
 
+  /cases/transaction/{transaction_id}/:
+    get:
+      summary: Get cases by transaction id
+      description: Consume an transaction id and get certain numbers of cases
+      tags: 
+        - Cases
+      parameters: 
+        - name: transaction_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: responses for get case
+          schema: {$ref: '#/definitions/GetCasesResponse'}
+    
   /case_status/:
     get:
       summary: returns all defined case status
@@ -114,11 +160,11 @@ paths:
           description: OK
           schema: { $ref: '#/definitions/CasestatusResponse'}
 
-  /usr/{usr_id}:
+  /user/{user_id}:
     get:
       summary: get a usr's information by usrId
       parameters: 
-        - name: usr_id
+        - name: user_id
           in: path
           required: true
           type: integer
@@ -131,6 +177,9 @@ paths:
     
 
 definitions:
+
+  SearchTransacId:
+    type: string
 
   CaseId:
     type: integer
@@ -158,11 +207,13 @@ definitions:
     properties:
       caseId:
         $ref: '#/definitions/CaseId'
-      usrId:
+      userId:
         $ref: '#/definitions/UserId'
-      custName:
+      nameFirst:
         type: string
-      custContact:
+      nameLast:
+        type: string
+      contact:
         type: string
       statusId:
         $ref: '#/definitions/CaseStatusId'
@@ -188,17 +239,29 @@ definitions:
     enum: 
       - ErrorNoSuchId
       - ErrorRequestIllFormated
-  
+  BoolResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      resullt:
+        type: boolean
+
   CaseIdResponse:
     type: object
     properties:
       error:
         $ref: '#/definitions/ErrorType'
       content:
-        type: array
-        items:
-          $ref: '#/definitions/CaseId'
-  
+        $ref: '#/definitions/CaseId'
+  CaseResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      content:
+        $ref: '#/definitions/Case'
+
   CasesResponse:
     type: object
     properties:
@@ -219,6 +282,39 @@ definitions:
         items:
           $ref: '#/definitions/CaseStatus'
 
+  GetCasesResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      transaction_id:
+        $ref: '#/definitions/SearchTransacId'
+      cases:
+        type: array
+        items:
+          $ref: '#/definitions/Case'
+
+  AtrributeValuesResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      attribute_vals:
+        type: array
+        items:
+          type: string
+
+  SearchCasesResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      transaction_id:
+        $ref: '#/definitions/SearchTransacId'
+      cases:
+        type: array
+        items:
+          $ref: '#/definitions/Case'
   SearchSpec:
     type: object
     properties:

@@ -121,7 +121,7 @@ def add_case():
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-    return reply( {"caseId": CaseBusiness.addCase(payload)}, HTTP_200_OK)
+    return reply( CaseBusiness.addCase(payload), HTTP_200_OK)
 
 ######################################################################
 # DELETE a case
@@ -140,7 +140,7 @@ def update_case():
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-    return reply( {"status": CaseBusiness.updateCase(payload)}, HTTP_200_OK)
+    return reply( CaseBusiness.updateCase(payload), HTTP_200_OK)
 
 ######################################################################
 # GET a case by id
@@ -150,16 +150,31 @@ def get_case(user_id, case_id):
     return reply( CaseBusiness.getCase(user_id, case_id), HTTP_200_OK)
 
 ######################################################################
-# GET cases by userId
+# CREATE a transaction
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/", methods=['POST'])
-def get_cases_by_user(user_id):
+def create_transaction(user_id):
     try:
         payload = json.loads(request.data)
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-    return reply( {"cases":CaseBusiness.getCaseList(user_id, payload)}, HTTP_200_OK)
+    
+    return reply(
+        CaseBusiness.createTransaction(
+            callerToken="1",
+            userId=user_id,
+            winSize=payload["window_size"],
+            specs=payload["search_specs"]
+        ),
+        HTTP_200_OK)
+
+######################################################################
+# GET cases by transaction_id
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/cases/transaction_id/<transaction_id>/", methods=['GET'])
+def get_cases_by_transaction(transaction_id):
+    return reply( CaseBusiness.getCasesByTransacId("1", transaction_id), HTTP_200_OK)
 
 
 

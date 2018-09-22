@@ -64,7 +64,12 @@ class DBManager(object):
         class DecimalEncoder(json.JSONEncoder):
             def default(self, o):
                 if isinstance(o, decimal.Decimal):
-                    return str(o)
+                    strRep = str(o)
+                    # checking if this is float
+                    if '.' in strRep:
+                        return float(strRep)
+                    else:
+                        return int(strRep)
                 return super(DecimalEncoder, self).default(o)
 
         return json.loads(json.dumps(item, cls=DecimalEncoder))
