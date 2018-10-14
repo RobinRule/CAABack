@@ -16,8 +16,8 @@ def getDynamoDBConnection(config=None, endpoint=None, port=None, local=False, us
             'dynamodb',
             endpoint_url=endpoint,
             port=port,
-            aws_secret_access_key='ticTacToeSampleApp',
-            aws_access_key_id='ticTacToeSampleApp')
+            aws_secret_access_key='caaSampleApp',
+            aws_access_key_id='caaSampleApp')
     else:
         params = {}
         # Read from config file, if provided
@@ -27,9 +27,9 @@ def getDynamoDBConnection(config=None, endpoint=None, port=None, local=False, us
             if config.has_option('dynamodb', 'endpoint'):
                 params['endpoint_url'] = config.get('dynamodb', 'endpoint')
 
-            if config.has_option('dynamodb', 'aws_access_key_id'):
-                params['aws_access_key_id'] = config.get('dynamodb', 'aws_access_key_id')
-                params['aws_secret_access_key'] = config.get('dynamodb', 'aws_secret_access_key')
+            if config.has_option('aws_credential', 'aws_access_key_id'):
+                params['aws_access_key_id'] = config.get('aws_credential', 'aws_access_key_id')
+                params['aws_secret_access_key'] = config.get('aws_credential', 'aws_secret_access_key')
 
         # Use the endpoint specified on the command-line to trump the config file
         if endpoint is not None:

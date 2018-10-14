@@ -102,6 +102,19 @@ paths:
         200:
           description: Case founded
           schema: {$ref: '#/definitions/CasesResponse'}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: '200'
+        requestParameters:
+          integration.request.path.proxy: method.request.path.proxy
+        uri: http://${stageVariables.url}/cases/{user_id}/{case_id}
+        passthroughBehavior: when_no_match
+        httpMethod: ANY
+        cacheNamespace: rbftud
+        cacheKeyParameters:
+        - method.request.path.proxy
+        type: http_proxy
 
   /cases/{user_id}/:
     post:

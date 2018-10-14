@@ -13,6 +13,7 @@ import os, argparse
 from flask import Flask, jsonify, request, json
 import fileinput
 from business.CaseBusiness import CaseBusiness
+from business.UserBusiness import UserBusiness
 import global_var
  # import global_var.APP, global_var.APP_NAME, global_var.APP_VERSION, global_var.URL_VERSION, global_var.CFG, global_var.ARGS
 import json
@@ -110,11 +111,87 @@ def send_fonts(path):
 def index_api():
     return jsonify(name=global_var.APP_NAME, version=global_var.APP_VERSION, url='/cases'), HTTP_200_OK
 
+def authorize(func):
+    def func_wrapper(*args, **kwargs):
+        headers = request.headers
+        auth = headers.get('cognito-auth')
+        try:
+            payload = json.loads(auth)
+        except Exception as e:
+            logger.exception("Failed to load header cognito-auth")
+            return reply( {}, HTTP_400_BAD_REQUEST)
+
+        try:
+            UserBusiness.check_token(payload['token'])
+        except Exception as e:
+            return reply( { "error" : "InvalidToken" }, HTTP_400_BAD_REQUEST)
+        kwargs['token'] = payload['token']
+        return func(*args, **kwargs)
+    func_wrapper.__name__ = func.__name__
+    return func_wrapper
+
+######################################################################
+# Get User
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>", methods=['GET'])
+@authorize
+def get_user(user_id, token):
+    raise NotImplementedError()
+    return reply( CaseBusiness.addCase(payload), HTTP_200_OK)
+
+
+######################################################################
+# ADD User
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/users/", methods=['POST'])
+@authorize
+def add_user(token):
+    try:
+        payload = json.loads(request.data)
+    except Exception as e:
+        logger.exception("Failed to load data")
+        return reply( {}, HTTP_400_BAD_REQUEST)
+
+    return reply( UserBusiness.addUser(token, payload), HTTP_200_OK)
+
+
+######################################################################
+# CREATE a users transaction
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>/", methods=['POST'])
+@authorize
+def create_user_transaction(user_id, token):
+    try:
+        payload = json.loads(request.data)
+    except Exception as e:
+        logger.exception("Failed to load data")
+        return reply( {}, HTTP_400_BAD_REQUEST)
+    raise NotImplementedError()
+    return reply(
+        CaseBusiness.createTransaction(
+            callerToken="1",
+            userId=user_id,
+            winSize=payload["window_size"],
+            specs=payload["search_specs"]
+        ),
+        HTTP_200_OK)
+
+
+######################################################################
+# GET users by transaction_id
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/users/transaction_id/<transaction_id>/", methods=['GET'])
+@authorize
+def get_users_by_transaction(transaction_id, token):
+    raise NotImplementedError()
+    return reply( CaseBusiness.getCasesByTransacId("1", transaction_id), HTTP_200_OK)
+
 
 ######################################################################
 # ADD a case
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/", methods=['POST'])
+@authorize
 def add_case():
     try:
         payload = json.loads(request.data)
@@ -127,14 +204,16 @@ def add_case():
 # DELETE a case
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/<case_id>", methods=['DELETE'])
-def delete_case(user_id, case_id):
+@authorize
+def delete_case(user_id, case_id, token):
     return reply( {"status": CaseBusiness.delCase(user_id, case_id)}, HTTP_200_OK)
 
 ######################################################################
 # UPDATE a case
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/", methods=['PUT'])
-def update_case():
+@authorize
+def update_case(token):
     try:
         payload = json.loads(request.data)
     except Exception as e:
@@ -146,14 +225,16 @@ def update_case():
 # GET a case by id
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/<case_id>/", methods=['GET'])
-def get_case(user_id, case_id):
+@authorize
+def get_case(user_id, case_id, token):
     return reply( CaseBusiness.getCase(user_id, case_id), HTTP_200_OK)
 
 ######################################################################
 # CREATE a transaction
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/<user_id>/", methods=['POST'])
-def create_transaction(user_id):
+@authorize
+def create_case_transaction(user_id, token):
     try:
         payload = json.loads(request.data)
     except Exception as e:
@@ -173,7 +254,8 @@ def create_transaction(user_id):
 # GET cases by transaction_id
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/cases/transaction_id/<transaction_id>/", methods=['GET'])
-def get_cases_by_transaction(transaction_id):
+@authorize
+def get_cases_by_transaction(transaction_id, token):
     return reply( CaseBusiness.getCasesByTransacId("1", transaction_id), HTTP_200_OK)
 
 
