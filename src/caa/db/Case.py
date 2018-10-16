@@ -2,7 +2,6 @@
 from .DBManager import DBManager
 from .BaseDataClass import BaseDataClass
 from datetime import datetime
-from boto3.dynamodb.conditions import Key, Attr
 import logging
 
 

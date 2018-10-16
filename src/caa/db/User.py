@@ -18,6 +18,7 @@ params = {}
 params['aws_access_key_id'] = CFG.get('aws_credential', 'aws_access_key_id')
 params['aws_secret_access_key'] = CFG.get('aws_credential', 'aws_secret_access_key')
 
+logger.info("Creating cognito client with params:{}".format(params))
 COGNITO_CLIENT = boto3.client('cognito-idp', **params)
 
 class CognitoUser:
@@ -33,13 +34,15 @@ class CognitoUser:
     @classmethod
     def genTempPassword(cls):
         return ''.join(random.choices(string.ascii_uppercase, k=3))\
+                + ''.join(random.choices(string.ascii_lowercase, k=2))\
+                + '@'\
                 + ''.join(random.choices(string.digits, k=4))
 
     @classmethod
-    def addUser(cls, newUserEmail):
+    def addUser(cls, username, newUserEmail):
         params = {
             "UserPoolId" : POOL_ID,
-            "Username" : newUserEmail,
+            "Username" : username,
             "UserAttributes": [
                 {
                     'Name': 'email',
@@ -47,7 +50,7 @@ class CognitoUser:
                 },
             ],
             "TemporaryPassword" : cls.genTempPassword(),
-            "ForceAliasCreation" : True|False,
+            "ForceAliasCreation" : False,
             "MessageAction" : 'RESEND',
             "DesiredDeliveryMediums" : [
                 'EMAIL'

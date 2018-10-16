@@ -29,8 +29,8 @@ paths:
         - Users
       responses:
         200:
-          description: Request status or error msg
-          schema: { $ref: '#/definitions/UserResponse'}
+          description: Creation status or error msg
+          schema: { $ref: '#/definitions/BoolResponse'}
 
     put:
       summary: Update an existing user

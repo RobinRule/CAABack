@@ -1,9 +1,12 @@
+
 [aws_credential]
-aws_access_key_id = AKIAIZ7DJS3EF4TVYVIQ
-aws_secret_access_key = 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
+aws_access_key_id = AKIAJ7C7IG46MTCVYAZQ
+aws_secret_access_key = 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
+
 [dynamodb]
 region = us-east-2
 endpoint = http://dynamodb.us-east-2.amazonaws.com
+
 [cognito]
 pool_id = us-east-1_D6DyvBjr6
 client_id = 4c5r41apul44f1p77e0fqbf5od

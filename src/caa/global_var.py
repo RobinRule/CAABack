@@ -21,5 +21,5 @@ class Errors(Enum):
 	ErrorNotAuthoriedOperation = "ErrorNotAuthoriedOperation"
 
 #declare in here, initialized in server.py
-CFG = {}
-ARGS = {}
+CFG = None
+ARGS = None

@@ -153,7 +153,7 @@ class BaseDataClass(object):
         tableKey = getattr( item, 'key')
         logger.info("Key are: {}".format(tableKey))
         # Generate a new item id
-        newId = cls.newItemId(item)
+        newId = cls.newItemId(item) if idGen is None else idGen()
         setattr( item, tableKey, newId)
 
         itemTable.put_item(

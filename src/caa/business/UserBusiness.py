@@ -13,16 +13,19 @@ class UserBusiness(object):
     """docstring for UserBusiness"""
     @classmethod
     def addUser(cls, token, user):
-        userId = user['email']
+        userId = user['username']
 
         # add this user, automatically sent out invitation
-        CognitoUser.addUser(userId)
+        if not CognitoUser.addUser(user['username'], user['email']):
+            return { "error" : "Falied to add user."}
 
         # add invitee as invitor's Inferior
-        callerId = check_token(token)
-        callerInferios = Inferior.getItem(Inferior({"userId" : callerId}))
+        callerId = cls.checkToken(token)
+    
+        inferiorObj = Inferior({"userId" : callerId})        
+        callerInferios = Inferior.getItem(inferiorObj)
         if type(callerInferios) is Errors:
-            Inferior.addItem({"userId" : callerId, "inferiors" : [ userId]})
+            Inferior.addItem(Inferior({"inferiors" : [ userId]}), lambda : callerId)
         else:
             callerInferios['inferiors'].append(user)
             Inferior.updateItem(callerInferios)
@@ -35,10 +38,10 @@ class UserBusiness(object):
         return ["read"]
 
     @classmethod
-    def getUserByToken(cls, token):
+    def getUser(cls, token, userId):
         pass
 
     # check whether an token is valid. returns user_id for token owner
     @classmethod
-    def check_token(cls, token):
+    def checkToken(cls, token):
         return CognitoUser.getUser(token)

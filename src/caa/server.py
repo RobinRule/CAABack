@@ -10,12 +10,7 @@
 """
 
 import os, argparse
-from flask import Flask, jsonify, request, json
-import fileinput
-from business.CaseBusiness import CaseBusiness
-from business.UserBusiness import UserBusiness
 import global_var
- # import global_var.APP, global_var.APP_NAME, global_var.APP_VERSION, global_var.URL_VERSION, global_var.CFG, global_var.ARGS
 import json
 from configparser                   import ConfigParser
 
@@ -79,6 +74,10 @@ if SVR_PORT is None:
     SVR_PORT = 5000
 
 
+from flask import Flask, jsonify, request, json
+import fileinput
+from business.CaseBusiness import CaseBusiness
+from business.UserBusiness import UserBusiness
 ######################################################################
 # GET INDEX
 ######################################################################
@@ -111,22 +110,24 @@ def send_fonts(path):
 def index_api():
     return jsonify(name=global_var.APP_NAME, version=global_var.APP_VERSION, url='/cases'), HTTP_200_OK
 
+# authorize request's access token
 def authorize(func):
     def func_wrapper(*args, **kwargs):
         headers = request.headers
-        auth = headers.get('cognito-auth')
         try:
-            payload = json.loads(auth)
+            auth = headers['cognito-auth']
         except Exception as e:
-            logger.exception("Failed to load header cognito-auth")
-            return reply( {}, HTTP_400_BAD_REQUEST)
+            return reply( { "error" : "Missing cognito-auth heder"}, HTTP_400_BAD_REQUEST)
 
         try:
-            UserBusiness.check_token(payload['token'])
+            auth = headers['cognito-auth']
+            UserBusiness.checkToken(auth)
         except Exception as e:
             return reply( { "error" : "InvalidToken" }, HTTP_400_BAD_REQUEST)
-        kwargs['token'] = payload['token']
+
+        kwargs['token'] = auth
         return func(*args, **kwargs)
+
     func_wrapper.__name__ = func.__name__
     return func_wrapper
 
@@ -136,8 +137,7 @@ def authorize(func):
 @global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>", methods=['GET'])
 @authorize
 def get_user(user_id, token):
-    raise NotImplementedError()
-    return reply( CaseBusiness.addCase(payload), HTTP_200_OK)
+    return reply( UserBusiness.getUser(token, user_id), HTTP_200_OK)
 
 
 ######################################################################
@@ -185,6 +185,8 @@ def create_user_transaction(user_id, token):
 def get_users_by_transaction(transaction_id, token):
     raise NotImplementedError()
     return reply( CaseBusiness.getCasesByTransacId("1", transaction_id), HTTP_200_OK)
+
+
 
 
 ######################################################################
