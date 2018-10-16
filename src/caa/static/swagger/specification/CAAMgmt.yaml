@@ -9,8 +9,121 @@ schemes:
 basePath: /api/v1
 produces:
   - application/json
-paths:
 
+paths:
+  /users/:
+    post:
+      summary: Create a new user
+      description: Create a new user. This request will send out a invitation email to user's email address that provided in request. Created user will be automatically added as requester\'s superior
+      parameters:
+        - name: cognito-auth
+          in: header
+          type: string
+          required: true
+        - name: user
+          in: body
+          description: a case needed to be added to database
+          required: true
+          schema: { $ref: '#/definitions/CreateUserRequest'}
+      tags:
+        - Users
+      responses:
+        200:
+          description: Request status or error msg
+          schema: { $ref: '#/definitions/UserResponse'}
+
+    put:
+      summary: Update an existing user
+      description: Update an existing user. Username in that user refers to which user you are updating, any attribute with a non-null value will be updated. Return will contain updated user.
+      parameters:
+        - name: cognito-auth
+          in: header
+          type: string
+          required: true
+        - name: user
+          in: body
+          description: Descripe user need to be updated
+          required: true
+          schema: { $ref: '#/definitions/User'}
+      tags:
+        - Users
+      responses:
+        200:
+          description: Updated user or error msg.
+          schema: {$ref: '#/definitions/UserResponse'}
+
+  /users/{username}/:
+    get:
+      summary: Get a User by username
+      description:
+        This get request returns a user by the id specified username
+      parameters:
+        - name: cognito-auth
+          in: header
+          type: string
+          required: true
+        - name: username
+          in: path
+          description: an string username of user
+          required: true
+          type: string
+      tags:
+        - Users
+      responses:
+        200:
+          description: Founded user or err msg
+          schema: {$ref: '#/definitions/UserResponse'}
+
+    post:
+      summary: Search for user
+      description: Search for usr's all superior user. By default the result is sorted by create time. Requester of this api can pass in a list of search specs to further refine the result. Relationship between different search spec is AND. In each search spec, you can specify the a specified val for the attr that you are searching for or you can specify the sorting order of returned result  you want . When multiple sorting order is specified, the one appears first takes a higher priority. An user is only allowed to search his own superiors and his team members\'s superiors. This request returns an transaction id and first page of superior user. When results are less than one page. transaction id will be null.
+      tags:
+        - Users
+      parameters:
+        - name: cognito-auth
+          in: header
+          type: string
+          required: true
+        - name: username
+          in: path
+          description: an string username of user
+          required: true
+          type: string
+        - name: body
+          in: body
+          schema:
+            properties:
+              search_specs:
+                type: array
+                items:
+                  $ref: '#/definitions/SearchSpec'
+              window_size:
+                type: integer
+      responses:
+        200:
+          description: Contains an transaction id and first page
+          schema: {$ref: '#/definitions/SearchUsersResponse'}
+
+  /users/transaction/{transaction_id}/:
+    get:
+      summary: Get users by transaction id
+      description: Consume an transaction id and get certain numbers of Users
+      tags: 
+        - Users
+      parameters:
+        - name: cognito-auth
+          in: header
+          type: string
+          required: true
+        - name: transaction_id
+          in: path
+          required: true
+          type: string
+      responses:
+        200:
+          description: responses for get case
+          schema: {$ref: '#/definitions/SearchUsersResponse'}
+  
   /cases:
     post:
       summary: Create a new case
@@ -102,19 +215,6 @@ paths:
         200:
           description: Case founded
           schema: {$ref: '#/definitions/CasesResponse'}
-      x-amazon-apigateway-integration:
-        responses:
-          default:
-            statusCode: '200'
-        requestParameters:
-          integration.request.path.proxy: method.request.path.proxy
-        uri: http://${stageVariables.url}/cases/{user_id}/{case_id}
-        passthroughBehavior: when_no_match
-        httpMethod: ANY
-        cacheNamespace: rbftud
-        cacheKeyParameters:
-        - method.request.path.proxy
-        type: http_proxy
 
   /cases/{user_id}/:
     post:
@@ -173,23 +273,28 @@ paths:
           description: OK
           schema: { $ref: '#/definitions/CasestatusResponse'}
 
-  /user/{user_id}:
-    get:
-      summary: get a usr's information by usrId
-      parameters: 
-        - name: user_id
-          in: path
-          required: true
-          type: integer
-      tags: 
-        - User
-      responses:
-        200:
-          description: OK
-          schema: { $ref: '#/definitions/User'}
     
 
 definitions:
+  Username:
+    type: string
+
+  User:
+    type: object
+    properties:
+      username:
+        $ref: '#/definitions/Username'
+      nameFirst:
+        type: string
+      nameLast:
+        type: string
+      email:
+        type: string
+      superiors:
+        type: array
+        items:
+          $ref: '#/definitions/Username'
+      
 
   SearchTransacId:
     type: string
@@ -197,8 +302,6 @@ definitions:
   CaseId:
     type: integer
   
-  UserId:
-    type: integer
 
   CaseStatusId:
     type: integer
@@ -221,7 +324,7 @@ definitions:
       caseId:
         $ref: '#/definitions/CaseId'
       userId:
-        $ref: '#/definitions/UserId'
+        $ref: '#/definitions/Username'
       nameFirst:
         type: string
       nameLast:
@@ -235,23 +338,12 @@ definitions:
       closeTime:
         type: string
 
-  User:
-    type: object
-    properties:
-      id:
-        $ref: '#/definitions/UserId'
-      nameFirst:
-        type: string
-      nameLast:
-        type: string
-      contacts:
-        type: string
-  
   ErrorType:
     type: string
     enum: 
       - ErrorNoSuchId
       - ErrorRequestIllFormated
+  
   BoolResponse:
     type: object
     properties:
@@ -260,6 +352,32 @@ definitions:
       resullt:
         type: boolean
 
+  CreateUserRequest:
+    type: object
+    properties:
+      username:
+        $ref: '#/definitions/Username'
+      email:
+        type: string
+
+  UserResponse:
+    type: object
+    properties:
+      content:
+        $ref: '#/definitions/User'
+      error:
+        $ref: '#/definitions/ErrorType'
+  SearchUsersResponse:
+    type: object
+    properties:
+      error:
+        $ref: '#/definitions/ErrorType'
+      transaction_id:
+        $ref: '#/definitions/SearchTransacId'
+      Users:
+        type: array
+        items:
+          $ref: '#/definitions/User'
   CaseIdResponse:
     type: object
     properties:
