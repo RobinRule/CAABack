@@ -19,6 +19,7 @@ class Errors(Enum):
 	ErrorNoSuchId = "ErrorNoSuchId"
 	ErrorRequestIllFormated = "ErrorRequestIllFormated"
 	ErrorNotAuthoriedOperation = "ErrorNotAuthoriedOperation"
+	ErrorNotEnoughPermisson = "ErrorNotEnoughPermisson"
 
 #declare in here, initialized in server.py
 CFG = None

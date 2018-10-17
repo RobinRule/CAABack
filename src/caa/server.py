@@ -121,11 +121,11 @@ def authorize(func):
 
         try:
             auth = headers['cognito-auth']
-            UserBusiness.checkToken(auth)
+            requesterId = UserBusiness.checkToken(auth)
         except Exception as e:
             return reply( { "error" : "InvalidToken" }, HTTP_400_BAD_REQUEST)
 
-        kwargs['token'] = auth
+        kwargs['requesterId'] = requesterId
         return func(*args, **kwargs)
 
     func_wrapper.__name__ = func.__name__
@@ -136,8 +136,8 @@ def authorize(func):
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>", methods=['GET'])
 @authorize
-def get_user(user_id, token):
-    return reply( UserBusiness.getUser(token, user_id), HTTP_200_OK)
+def get_user(user_id, requesterId):
+    return reply( UserBusiness.getUser(requesterId, user_id), HTTP_200_OK)
 
 
 ######################################################################
@@ -145,14 +145,28 @@ def get_user(user_id, token):
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/users/", methods=['POST'])
 @authorize
-def add_user(token):
+def add_user(requesterId):
     try:
         payload = json.loads(request.data)
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
 
-    return reply( UserBusiness.addUser(token, payload), HTTP_200_OK)
+    return reply( UserBusiness.addUser(requesterId, payload), HTTP_200_OK)
+
+######################################################################
+# UPDATE a User
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/users/", methods=['PUT'])
+@authorize
+def update_user(requesterId):
+    try:
+        payload = json.loads(request.data)
+    except Exception as e:
+        logger.exception("Failed to load data")
+        return reply( {}, HTTP_400_BAD_REQUEST)
+    return reply( UserBusiness.updateUser(payload), HTTP_200_OK)
+
 
 
 ######################################################################
@@ -160,17 +174,17 @@ def add_user(token):
 ######################################################################
 @global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>/", methods=['POST'])
 @authorize
-def create_user_transaction(user_id, token):
+def create_user_transaction(user_id, requesterId):
     try:
         payload = json.loads(request.data)
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
-    raise NotImplementedError()
+
     return reply(
-        CaseBusiness.createTransaction(
-            callerToken="1",
-            userId=user_id,
+        UserBusiness.createTransaction(
+            requesterId=requesterId,
+            targetUserId=user_id,
             winSize=payload["window_size"],
             specs=payload["search_specs"]
         ),
@@ -180,11 +194,10 @@ def create_user_transaction(user_id, token):
 ######################################################################
 # GET users by transaction_id
 ######################################################################
-@global_var.APP.route(global_var.URL_VERSION+"/users/transaction_id/<transaction_id>/", methods=['GET'])
+@global_var.APP.route(global_var.URL_VERSION+"/users/transaction/<transaction_id>/", methods=['GET'])
 @authorize
-def get_users_by_transaction(transaction_id, token):
-    raise NotImplementedError()
-    return reply( CaseBusiness.getCasesByTransacId("1", transaction_id), HTTP_200_OK)
+def get_users_by_transaction(transaction_id, requesterId):
+    return reply( UserBusiness.getUsersByTransacId(requesterId, transaction_id), HTTP_200_OK)
 
 
 
