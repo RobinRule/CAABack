@@ -1,7 +1,6 @@
 
 from .DBManager import DBManager
 from boto3.dynamodb.conditions import Key, Attr
-from global_var import Errors
 import operator
 from datetime import datetime
 from dateutil.parser import parse as timeParse
@@ -153,7 +152,7 @@ class BaseDataClass(object):
         tableKey = getattr( item, 'key')
         logger.info("Key are: {}".format(tableKey))
         # Generate a new item id
-        newId = cls.newItemId(item)
+        newId = cls.newItemId(item) if idGen is None else idGen()
         setattr( item, tableKey, newId)
 
         itemTable.put_item(
@@ -219,10 +218,10 @@ class BaseDataClass(object):
         )
         if 'Item' not in response:
             logger.info("Requiring item: {} does not exist.".format(keys))
-            return Errors.ErrorNoSuchId
+            return False, "Acquiring item does not exist"
         reItem = DBManager.toJsonData(response['Item'])
         logger.debug("getItem item: {}".format(reItem))
-        return reItem
+        return True, reItem
 
     @classmethod
     def getItemsByQuery(cls, specs, item):
@@ -268,7 +267,7 @@ class BaseDataClass(object):
             response = itemTable.scan(**queryKwargs)
         except Exception as e:
             logger.exception(e)
-            return Errors.ErrorRequestIllFormated
+            return False, None
         # sorting
         items = sorted(
             DBManager.toJsonData(response['Items']),
@@ -276,7 +275,7 @@ class BaseDataClass(object):
         )
 
         logger.info("getItemsByQuery :{}".format(items))
-        return items
+        return True, items
 
     @classmethod
     def getItemsByIds(cls, itemIds, item):
@@ -299,7 +298,7 @@ class BaseDataClass(object):
             response = itemTable.query(KeyConditionExpression=keyExp)
         except Exception as e:
             logger.exception(e)
-            return Errors.ErrorRequestIllFormated
+            return False, None
 
         # sort items according to original id position
         items = sorted(
@@ -307,5 +306,5 @@ class BaseDataClass(object):
             key = lambda oneitem: itemIdToSeq[str({ item.key : oneitem[item.key] })]
         )
         logger.info("getItemsByIds :{}".format(items))
-        return items
+        return True, items
 

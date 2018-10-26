@@ -1,5 +1,16 @@
+
+[aws_credential]
+aws_access_key_id = AKIAJ7C7IG46MTCVYAZQ
+aws_secret_access_key = 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
+
 [dynamodb]
 region = us-east-2
 endpoint = http://dynamodb.us-east-2.amazonaws.com
-aws_access_key_id = AKIAISM45IC2MBOVKVAA
-aws_secret_access_key = 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
+
+[cognito]
+pool_id = us-east-1_D6DyvBjr6
+client_id = 4c5r41apul44f1p77e0fqbf5od
+endpoint = https://jkbasd-caadev-userpool.auth.us-east-1.amazoncognito.com
+
+[s3]
+bucket = caa-resources-bucket-dev

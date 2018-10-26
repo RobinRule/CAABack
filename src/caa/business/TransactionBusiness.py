@@ -9,15 +9,13 @@ class TransactionBusiness(object):
 	"""docstring for TransactionBusiness"""
 	
 	@classmethod
-	def consumeTransaction(cls, callerToken, transactionId, item):
-		callerUserId = callerToken #TODO: convert this to userId
-
-		oldTransactionJson = Transaction.getItem(Transaction({'transactionId' : transactionId}))
-		if type(oldTransactionJson) is Errors:
-			return { "error" : str(oldTransactionJson) }
+	def consumeTransaction(cls, requesterId, transactionId, item):
+		status, oldTransactionJson = Transaction.getItem(Transaction({'transactionId' : transactionId}))
+		if not status:
+			return { "error" : oldTransactionJson}
 		
 		# Step 1: verify that callerId is correct
-		if oldTransactionJson['userId'] != callerUserId:
+		if oldTransactionJson['userId'] != requesterId:
 			return { "error" : str(Errors.NotAuthoriedOperation)}
 
 		# Step 2 : populate ids into items
@@ -34,7 +32,7 @@ class TransactionBusiness(object):
 				'itemIds' : itemIds[winSize:],
 				'winSize' : winSize,
 				'timeToLive' : 10,
-				'userId' : callerUserId
+				'userId' : requesterId
 			}
 			newTransactionId = Transaction.addItem(Transaction(newTransactionJson))
 

@@ -3,6 +3,7 @@ from db.Case import Case
 from .UserBusiness import UserBusiness
 from db.Transaction import Transaction
 from .TransactionBusiness import TransactionBusiness
+from .UserBusiness import UserBusiness
 from global_var import Errors
 import logging
 
@@ -42,7 +43,7 @@ class CaseBusiness(object):
 	@classmethod
 	def createTransaction(cls, callerToken, userId, winSize, specs = None):
 		# Step 1: check this does this client has priviledges to get data fo this userId
-		callerUserId = callerToken #TODO: convert this to userId
+		callerUserId = UserBusiness.check_token(callerToken)
 		priviledge = UserBusiness.checkPriviledges(callerUserId, userId)
 		if "read" not in priviledge:
 			return { "error" : "Caller doesn't have enough priviledge to perform this operation" }
