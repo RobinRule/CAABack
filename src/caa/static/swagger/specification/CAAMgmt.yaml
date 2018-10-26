@@ -282,15 +282,23 @@ definitions:
   User:
     type: object
     properties:
-      username:
+      userId:
         $ref: '#/definitions/Username'
-      nameFirst:
+      family_name:
         type: string
-      nameLast:
+      given_name:
         type: string
       email:
         type: string
-      superiors:
+      email_verified:
+        type: boolean
+      phone_number:
+        type: string
+      UserCreateDate:
+        type: string
+      UserLastModifiedDate:
+        type: string
+      inferiors:
         type: array
         items:
           $ref: '#/definitions/Username'

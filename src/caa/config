@@ -11,3 +11,6 @@ endpoint = http://dynamodb.us-east-2.amazonaws.com
 pool_id = us-east-1_D6DyvBjr6
 client_id = 4c5r41apul44f1p77e0fqbf5od
 endpoint = https://jkbasd-caadev-userpool.auth.us-east-1.amazoncognito.com
+
+[s3]
+bucket = caa-resources-bucket-dev

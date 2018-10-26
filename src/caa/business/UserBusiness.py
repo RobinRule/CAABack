@@ -41,15 +41,15 @@ class UserBusiness(object):
         return CognitoUser.getUserByToken(token)['userId']
 
     @classmethod
-    def createTransaction(cls, requesterId, targetUserId, winSize, specs):
+    def createTransaction(cls, requesterId, targetUserId, winSize):
         # step 1: check does requesterId have enough permission
         if not User.isSuperior(requesterId, targetUserId):
             return { "error" : str(Errors.ErrorNotEnoughPermisson)}
 
         # step 2: get all of target user's inferior user
         status, userIds = User.getAllInferiors(targetUserId)
-        users = User.getItemsByIds(userIds)
-        # Todo: filter out user base on specs
+        users = [User.getItem(userId)[1] for userId in userIds]
+
         if len(userIds) <= winSize:
             return { "users" : users }
         # step 3: create transaction

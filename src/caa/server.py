@@ -74,7 +74,7 @@ if SVR_PORT is None:
     SVR_PORT = 5000
 
 
-from flask import Flask, jsonify, request, json
+from flask import Flask, jsonify, request, json, flash
 import fileinput
 from business.CaseBusiness import CaseBusiness
 from business.UserBusiness import UserBusiness
@@ -132,9 +132,32 @@ def authorize(func):
     return func_wrapper
 
 ######################################################################
+# Upload a resource
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/resources/<resource_id>", methods=['POST'])
+@authorize
+def upload_resource(resource_id, requesterId):
+    # check if the post request has the file part
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(global_var.CFG['UPLOAD_FOLDER'], filename)
+    file.save(file_path)
+    return reply( ResourceBusiness.uploadResource(requesterId, resource_id, file_path), HTTP_200_OK)
+
+
+######################################################################
 # Get User
 ######################################################################
-@global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>", methods=['GET'])
+@global_var.APP.route(global_var.URL_VERSION+"/users/<user_id>/", methods=['GET'])
 @authorize
 def get_user(user_id, requesterId):
     return reply( UserBusiness.getUser(requesterId, user_id), HTTP_200_OK)
@@ -154,6 +177,7 @@ def add_user(requesterId):
 
     return reply( UserBusiness.addUser(requesterId, payload), HTTP_200_OK)
 
+
 ######################################################################
 # UPDATE a User
 ######################################################################
@@ -165,6 +189,7 @@ def update_user(requesterId):
     except Exception as e:
         logger.exception("Failed to load data")
         return reply( {}, HTTP_400_BAD_REQUEST)
+    raise NotImplementedError()
     return reply( UserBusiness.updateUser(payload), HTTP_200_OK)
 
 
@@ -185,10 +210,10 @@ def create_user_transaction(user_id, requesterId):
         UserBusiness.createTransaction(
             requesterId=requesterId,
             targetUserId=user_id,
-            winSize=payload["window_size"],
-            specs=payload["search_specs"]
+            winSize=payload["window_size"]#,
+            # specs=payload["search_specs"]
         ),
-        HTTP_200_OK)
+        HTTP_200_OK)            
 
 
 ######################################################################

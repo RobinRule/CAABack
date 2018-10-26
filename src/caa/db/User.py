@@ -123,8 +123,8 @@ class User:
         return True, None
 
     @classmethod
-    def getItemsByIds(cls, userIds):
-        return [ cls.getItem(userId)[1] for userId in userIds ]
+    def getItemsByIds(cls, userIds, item = None):
+        return [ cls.getItem(userId['userId'])[1] for userId in userIds ]
 
     @classmethod
     def addBelongship(cls, superiorId, inferiorId):
