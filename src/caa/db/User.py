@@ -19,7 +19,7 @@ CLIENT_ID = CFG.get('cognito', 'client_id')
 params = {}
 params['aws_access_key_id'] = CFG.get('aws_credential', 'aws_access_key_id')
 params['aws_secret_access_key'] = CFG.get('aws_credential', 'aws_secret_access_key')
-
+params['region_name'] = CFG.get('cognito', 'region')
 logger.info("Creating cognito client with params:{}".format(params))
 COGNITO_CLIENT = boto3.client('cognito-idp', **params)
 

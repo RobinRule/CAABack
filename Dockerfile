@@ -1,14 +1,7 @@
 #start with a Linux micro-container to keep the image tiny
-FROM alpine:latest
-
+FROM python:3.6-alpine
 # Document who is responsible for this image
 MAINTAINER Zhiyu Feng "fengzhiyu20@gmail.com"
-
-# Install just the Python runtime (no dev)
-RUN apk add --update \
-    python \
-    py-pip \
- && rm -rf /var/cache/apk/*
 
 # Expose any ports the app is expecting in the environment
 EXPOSE 5000
