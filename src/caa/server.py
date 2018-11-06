@@ -117,7 +117,7 @@ def authorize(func):
         try:
             auth = headers['cognito-auth']
         except Exception as e:
-            return reply( { "error" : "Missing cognito-auth heder"}, HTTP_400_BAD_REQUEST)
+            return reply( { "error" : "Missing cognito-auth header"}, HTTP_400_BAD_REQUEST)
 
         try:
             auth = headers['cognito-auth']
