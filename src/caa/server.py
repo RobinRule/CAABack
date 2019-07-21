@@ -226,6 +226,32 @@ def get_users_by_transaction(transaction_id, requesterId):
 
 
 
+######################################################################
+# Get car
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/cars/<car_id>/", methods=['GET'])
+@authorize
+def get_car(car_id, requesterId):
+    return reply( CarBusiness.getCar(requesterId, user_id), HTTP_200_OK)
+
+
+######################################################################
+# ADD car
+######################################################################
+@global_var.APP.route(global_var.URL_VERSION+"/cars/", methods=['POST'])
+@authorize
+def add_car(requesterId):
+    try:
+        payload = json.loads(request.data)
+    except Exception as e:
+        logger.exception("Failed to load data")
+        return reply( {}, HTTP_400_BAD_REQUEST)
+
+    return reply( CarBusiness.addCar(requesterId, payload), HTTP_200_OK)
+
+
+
+
 
 ######################################################################
 # ADD a case

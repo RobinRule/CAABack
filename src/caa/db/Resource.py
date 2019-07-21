@@ -11,25 +11,20 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
-class Car(BaseDataClass):
+class Resource(BaseDataClass):
     """docstring for Transaction"""
     
     def __init__(self, jsonObj=None):
-        super(Car, self).__init__(
+        super(Resource, self).__init__(
             [
-                ( 'carId', str),
-                ( 'frontPic', str),
-                ( 'backPic', str),
-                ( 'leftPic', str),
-                ( 'rightPic', str),
-                ( 'insidePic', str),
-                ( 'otherPics', list)
+                ( 'resourceId', str),
+                ( 'uploaded', bool)
             ],
             jsonObj
         )
 
     @classmethod
     def newItemId(cls, item):
-        return uuid.uuid4()
+        return "{}-{}".format( uuid.uuid4(), datetime.now().isoformat())
 
         
